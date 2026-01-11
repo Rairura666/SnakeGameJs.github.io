@@ -11,7 +11,7 @@ let gameOver = false
 let foodX
 let foodY
 let scoreElem
-
+let snakeBody = []
 
 function drawFoodBox(context) {
     context.fillStyle = "crimson"
@@ -24,21 +24,24 @@ function newFoodPos() {
     foodY = y
 }
 
-function drawSnakeHead(context) {
+function drawSnake(context) {
     context.fillStyle = "yellow"
-    context.fillRect(snakeX * cellsize, snakeY * cellsize, cellsize, cellsize)
+
+    for (let i = 0; i < snakeBody.length; i++) {
+        context.fillRect(snakeBody[i][0] * cellsize, snakeBody[i][1] * cellsize, cellsize, cellsize)
+    }
 
     if (snakeX < 0) {
         snakeX = cols - 1
     }
-    if (snakeX > (cols - 1)) {
-        snakeX = 0
+    if (snakeX > (cols-1)) {
+        snakeX = -1
     }
     if (snakeY < 0) {
-        snakeY = rows - 1
+        snakeY = rows -1
     }
-    if (snakeY > (rows - 1)) {
-        snakeY = 0
+    if (snakeY > (rows-1)) {
+        snakeY = -1
     }
 }
 
@@ -53,24 +56,26 @@ function updateBoard(context) {
         context.textBaseline = "middle"
 
         context.fillText("Game Over", context.canvas.width / 2, context.canvas.height / 2)
-
-        
     } else {
+
         snakeX += speedX
         snakeY += speedY
 
+        snakeBody.push([snakeX, snakeY])
+
+        if (snakeBody.length > snakeLength) {
+            snakeBody.shift()
+        }
+
         drawFoodBox(context)
-        drawSnakeHead(context)
+        drawSnake(context)
 
         if (snakeX == foodX && snakeY == foodY) {
             newFoodPos()
             snakeLength += 1
-            scoreElem.innerText = `Score: ${snakeLength-1}`
+            scoreElem.innerText = `Score: ${snakeLength - 1}`
         }
-
-        
     }
-
 }
 
 
@@ -111,7 +116,7 @@ function changeDirection(e) {
                     } else gameOver = true
 
                 }
-
+    console.log(snakeBody)
 }
 
 window.onload = function start() {
@@ -120,12 +125,17 @@ window.onload = function start() {
     boardElem.height = cellsize * rows
     const context = boardElem.getContext("2d")
     scoreElem = this.document.getElementById("scoreText")
-   
+
     document.addEventListener("keyup", changeDirection)
 
-    const { x: startX, y: startY } = randomizeCell()
-    foodX = startX
-    foodY = startY
+    const { x: startSnakeX, y: startSnakeY } = randomizeCell()
+    snakeX = startSnakeX
+    snakeY = startSnakeY
+    snakeBody.push([snakeX, snakeY])
+
+    const { x: startFoodX, y: startFoodY } = randomizeCell()
+    foodX = startFoodX
+    foodY = startFoodY
 
     this.setInterval(() => updateBoard(context), 1000 / 10)
 
