@@ -6,11 +6,20 @@ let speedX = 0
 let speedY = 0
 let snakeX = 5
 let snakeY = 5
+let snakeLength = 1 
+
+let foodX
+let foodY
 
 function drawFoodBox(context) {
-    const { x, y } = randomizeFood()
     context.fillStyle = "crimson"
-    context.fillRect(x * cellsize, y * cellsize, cellsize, cellsize)
+    context.fillRect(foodX * cellsize, foodY * cellsize, cellsize, cellsize)
+}
+
+function newFoodPos() {
+    const { x, y } = randomizeCell()
+    foodX = x
+    foodY = y
 }
 
 function drawSnakeHead(context) {
@@ -25,7 +34,7 @@ function drawSnakeHead(context) {
     }
     if (snakeY < 0) {
         snakeY = rows - 1
-    } 
+    }
     if (snakeY > (rows - 1)) {
         snakeY = 0
     }
@@ -38,13 +47,18 @@ function updateBoard(context) {
     snakeX += speedX
     snakeY += speedY
 
-    // drawFoodBox(context)
+    drawFoodBox(context)
     drawSnakeHead(context)
 
+    if(snakeX == foodX && snakeY == foodY)
+    {
+        newFoodPos()
+        snakeLength +=1
+    }
 }
 
 
-function randomizeFood() {
+function randomizeCell() {
     const x = Math.floor(Math.random() * (rows - 1)) + 1
     const y = Math.floor(Math.random() * (cols - 1)) + 1
 
@@ -79,9 +93,11 @@ window.onload = function () {
 
     document.addEventListener("keyup", changeDirection)
 
-    this.setInterval(() => updateBoard(context), 1000 / 10)
+    const {x:startX, y:startY} = randomizeCell()
+    foodX = startX
+    foodY = startY
 
-
+    this.setInterval(() => updateBoard(context), 1000/10 )
 
 }
 
