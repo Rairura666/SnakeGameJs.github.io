@@ -6,8 +6,8 @@ let speedX = 0
 let speedY = 0
 let snakeX = 5
 let snakeY = 5
-let snakeLength = 1 
-
+let snakeLength = 1
+let gameOver = false
 let foodX
 let foodY
 
@@ -44,17 +44,26 @@ function updateBoard(context) {
     context.fillStyle = "blue"
     context.fillRect(0, 0, context.canvas.width, context.canvas.height)
 
-    snakeX += speedX
-    snakeY += speedY
+    if (gameOver) {
+        context.fillStyle = "white"
+        context.font = "40px Arial"
+        context.textAlign = "center"
+        context.textBaseline = "middle"
 
-    drawFoodBox(context)
-    drawSnakeHead(context)
+        context.fillText("Game Over", context.canvas.width / 2, context.canvas.height / 2)
+    } else {
+        snakeX += speedX
+        snakeY += speedY
 
-    if(snakeX == foodX && snakeY == foodY)
-    {
-        newFoodPos()
-        snakeLength +=1
+        drawFoodBox(context)
+        drawSnakeHead(context)
+
+        if (snakeX == foodX && snakeY == foodY) {
+            newFoodPos()
+            snakeLength += 1
+        }
     }
+
 }
 
 
@@ -67,20 +76,32 @@ function randomizeCell() {
 
 function changeDirection(e) {
     if (e.code == "ArrowUp") {
-        speedX = 0
-        speedY = -1
+        if (speedY != 1) {
+            speedX = 0
+            speedY = -1
+        } else gameOver = true
+
     } else
         if (e.code == "ArrowDown") {
-            speedX = 0
-            speedY = 1
+            if (speedY != -1) {
+                speedX = 0
+                speedY = 1
+            } else gameOver = true
+
         } else
             if (e.code == "ArrowLeft") {
-                speedX = -1
-                speedY = 0
+                if (speedX != 1) {
+                    speedX = -1
+                    speedY = 0
+                } else gameOver = true
+
             } else
                 if (e.code == "ArrowRight") {
-                    speedX = 1
-                    speedY = 0
+                    if (speedX != -1) {
+                        speedX = 1
+                        speedY = 0
+                    } else gameOver = true
+
                 }
 
 }
@@ -93,11 +114,11 @@ window.onload = function () {
 
     document.addEventListener("keyup", changeDirection)
 
-    const {x:startX, y:startY} = randomizeCell()
+    const { x: startX, y: startY } = randomizeCell()
     foodX = startX
     foodY = startY
 
-    this.setInterval(() => updateBoard(context), 1000/10 )
+    this.setInterval(() => updateBoard(context), 1000 / 10)
 
 }
 
