@@ -10,6 +10,8 @@ let snakeLength = 1
 let gameOver = false
 let foodX
 let foodY
+let scoreElem
+
 
 function drawFoodBox(context) {
     context.fillStyle = "crimson"
@@ -51,6 +53,8 @@ function updateBoard(context) {
         context.textBaseline = "middle"
 
         context.fillText("Game Over", context.canvas.width / 2, context.canvas.height / 2)
+
+        
     } else {
         snakeX += speedX
         snakeY += speedY
@@ -61,10 +65,14 @@ function updateBoard(context) {
         if (snakeX == foodX && snakeY == foodY) {
             newFoodPos()
             snakeLength += 1
+            scoreElem.innerText = `Score: ${snakeLength-1}`
         }
+
+        
     }
 
 }
+
 
 
 function randomizeCell() {
@@ -106,12 +114,13 @@ function changeDirection(e) {
 
 }
 
-window.onload = function () {
+window.onload = function start() {
     const boardElem = document.getElementById("board")
     boardElem.width = cellsize * cols
     boardElem.height = cellsize * rows
     const context = boardElem.getContext("2d")
-
+    scoreElem = this.document.getElementById("scoreText")
+   
     document.addEventListener("keyup", changeDirection)
 
     const { x: startX, y: startY } = randomizeCell()

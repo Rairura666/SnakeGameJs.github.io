@@ -2,3 +2,6 @@ body{
     text-align: center;
 }
 
+#scoreText{
+    font-size: 2rem;
+}
