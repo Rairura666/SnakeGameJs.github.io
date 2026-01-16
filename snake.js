@@ -16,15 +16,15 @@ let snakeX
 let snakeY
 let snakeLength = 1
 let gameOver = false
-let foodX
-let foodY
+let foodX = null
+let foodY = null
 let cakeX = null
 let cakeY = null
 let cakeExists = false
 let scoreElem
 let snakeBody = []
 let curDirection = "Right"
-let cakeChance = 1
+let cakeChance = 0.5
 
 
 let pacmanFrame = 0
@@ -49,10 +49,15 @@ function setNewGame() {
     snakeY = 5
     snakeLength = 1
     gameOver = false
-    foodX
-    foodY
+    foodX = null
+    foodY = null
     scoreElem
     snakeBody = []
+    curDirection = "Right"
+    poisonedTick = 0
+    poisoned = false
+    cakeExists = false
+    tryCakeAppear()
 
     const { x: startSnakeX, y: startSnakeY } = randomizeCell()
     snakeX = startSnakeX
@@ -113,7 +118,7 @@ function drawRotatedSegment(context, image, x, y, cellsize, angle, frame) {
 }
 
 function drawSnake(context) {
-    const poisonCount = Math.ceil((snakeBody.length) / 2)
+    const poisonCount = (Math.floor((snakeBody.length) / 2) >= 1) ? Math.ceil((snakeBody.length) / 2) : 0
 
     if (poisoned) {
 
@@ -147,7 +152,7 @@ function drawSnake(context) {
 
 function drawPoisonedTail(context) {
 
-    const poisonCount = Math.ceil((snakeBody.length) / 2)
+    const poisonCount = (Math.floor((snakeBody.length) / 2) >= 1) ? Math.ceil((snakeBody.length) / 2) : 0
 
     for (let i = 0; i < poisonCount; i++) {
         let angle = 0
@@ -165,7 +170,7 @@ function updateBoard(context) {
     context.fillStyle = "black"
     context.fillRect(0, 0, context.canvas.width, context.canvas.height)
 
-    const poisonCount = Math.ceil((snakeBody.length) / 2)
+    const poisonCount = (Math.floor((snakeBody.length) / 2) >= 1) ? Math.ceil((snakeBody.length) / 2) : 0
 
     if (gameOver) {
         context.fillStyle = "white"
