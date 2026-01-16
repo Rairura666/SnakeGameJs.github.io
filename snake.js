@@ -4,6 +4,9 @@ pacmanImg.src = "./src/pacman1.png"
 const foodImg = new Image()
 foodImg.src = "./src/cherry.png"
 
+const cakeImg = new Image()
+cakeImg.src = "./src/cake.png"
+
 let pacmanFrame = 0
 let pacmanFrameTick = 0
 const PACMAN_FRAMES = 6
@@ -21,9 +24,13 @@ let snakeLength = 1
 let gameOver = false
 let foodX
 let foodY
+let cakeX = null
+let cakeY = null
+let cakeExists = false
 let scoreElem
 let snakeBody = []
 let curDirection = "Right"
+let cakeChance = 0.2
 
 function setNewGame() {
     scoreElem = this.document.getElementById("scoreText")
@@ -62,6 +69,19 @@ function newFoodPos() {
     const { x, y } = randomizeCell()
     foodX = x
     foodY = y
+}
+
+function newCakePos() {
+    const { x, y } = randomizeCell()
+    cakeX = x
+    cakeY = y
+}
+
+function drawCake(context) {
+    context.drawImage(
+        cakeImg,
+        cakeX * cellsize, cakeY * cellsize, cellsize, cellsize
+    )
 }
 
 function drawRotatedSegment(context, image, x, y, cellsize, angle, frame) {
@@ -152,6 +172,21 @@ function updateBoard(context) {
             newFoodPos()
             snakeLength += 1
             scoreElem.innerText = `Score: ${snakeLength - 1}`
+            if (cakeExists == false) {
+                tryCakeAppear()
+            }
+        }
+
+        if (snakeX == cakeX && snakeY == cakeY) {
+
+            snakeLength = Math.floor(snakeLength / 2)
+            while ((snakeBody.length > snakeLength)&&snakeBody.length>1) {
+                snakeBody.shift()
+            }
+
+            cakeExists = false
+            cakeX = null
+            cakeY = null
         }
 
         pacmanFrameTick++
@@ -160,15 +195,22 @@ function updateBoard(context) {
             pacmanFrameTick = 0
         }
 
-
         drawFoodBox(context)
         drawSnake(context)
 
-
+        if (cakeX != null && cakeY != null) {
+            drawCake(context)
+        }
     }
 }
 
 
+function tryCakeAppear() {
+    if (Math.random() < cakeChance) {
+        cakeExists = true
+        newCakePos()
+    }
+}
 
 function randomizeCell() {
     const x = Math.floor(Math.random() * (rows - 1)) + 1
@@ -217,7 +259,6 @@ function handlePressedKey(e) {
                     } else gameOver = true
 
                 }
-    console.log(snakeBody)
 }
 
 
