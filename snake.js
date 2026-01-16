@@ -19,6 +19,7 @@ let foodX
 let foodY
 let scoreElem
 let snakeBody = []
+let curDirection = "Right"
 
 function setNewGame() {
     scoreElem = this.document.getElementById("scoreText")
@@ -56,26 +57,40 @@ function newFoodPos() {
     foodY = y
 }
 
-function drawSnake(context) {
-    context.fillStyle = "yellow"
-
-    for (let i = 0; i < snakeBody.length; i++) {
-        // context.fillRect(snakeBody[i][0] * cellsize, snakeBody[i][1] * cellsize, cellsize, cellsize)
-
-        context.drawImage(
-            pacmanImg,
-            pacmanFrame * cellsize,
-            0,
-            cellsize,
-            cellsize,
-            snakeBody[i][0] * cellsize,
-            snakeBody[i][1] * cellsize,
-            cellsize,
-            cellsize
-        )
+function drawRotatedSegment(context, image, x, y, cellsize, angle, frame) {
+    context.save();
+    context.translate(x + cellsize / 2, y + cellsize / 2);
+   
+    if (angle === Math.PI) {
+        context.scale(-1, 1)
+    } else {
+        context.rotate(angle);
     }
 
+    context.drawImage(
+        image,
+        frame * cellsize, 0,
+        cellsize, cellsize,
+        -cellsize / 2, -cellsize / 2,
+        cellsize, cellsize
+    );
+    context.restore();
+}
 
+function drawSnake(context) {
+
+
+    for (let i = 0; i < snakeBody.length; i++) {
+
+        let angle = 0
+
+        if (snakeBody[i][2] === "Right") angle = 0
+        if (snakeBody[i][2] === "Left") angle = Math.PI
+        if (snakeBody[i][2] === "Up") angle = -Math.PI / 2
+        if (snakeBody[i][2] === "Down") angle = Math.PI / 2
+
+        drawRotatedSegment(context, pacmanImg, snakeBody[i][0] * cellsize, snakeBody[i][1] * cellsize, cellsize, angle, pacmanFrame)
+    }
 }
 
 function updateBoard(context) {
@@ -114,7 +129,7 @@ function updateBoard(context) {
             snakeY = 0
         }
 
-        snakeBody.push([snakeX, snakeY])
+        snakeBody.push([snakeX, snakeY, curDirection])
 
         if (snakeBody.length > snakeLength) {
             snakeBody.shift()
@@ -167,6 +182,7 @@ function handlePressedKey(e) {
         if (speedY != 1) {
             speedX = 0
             speedY = -1
+            curDirection = "Up"
         } else gameOver = true
 
     } else
@@ -174,6 +190,7 @@ function handlePressedKey(e) {
             if (speedY != -1) {
                 speedX = 0
                 speedY = 1
+                curDirection = "Down"
             } else gameOver = true
 
         } else
@@ -181,6 +198,7 @@ function handlePressedKey(e) {
                 if (speedX != 1) {
                     speedX = -1
                     speedY = 0
+                    curDirection = "Left"
                 } else gameOver = true
 
             } else
@@ -188,6 +206,7 @@ function handlePressedKey(e) {
                     if (speedX != -1) {
                         speedX = 1
                         speedY = 0
+                        curDirection = "Right"
                     } else gameOver = true
 
                 }
