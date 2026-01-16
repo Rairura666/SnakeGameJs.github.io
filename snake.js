@@ -100,6 +100,12 @@ function updateBoard(context) {
         if (snakeBody.length > snakeLength) {
             snakeBody.shift()
         }
+        
+        for (let i = 0; i < snakeBody.length-1; i++) {
+            if (snakeX == snakeBody[i][0] && snakeY == snakeBody[i][1]) {
+                gameOver = true
+            }
+        }
 
         drawFoodBox(context)
         drawSnake(context)
