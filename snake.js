@@ -1,20 +1,14 @@
 const pacmanImg = new Image()
-pacmanImg.src = "./src/pacman1.png"
+pacmanImg.src = "./src/pacman.png"
+
+const pacmanPoisonImg = new Image()
+pacmanPoisonImg.src = "./src/pacman_poison.png"
 
 const foodImg = new Image()
 foodImg.src = "./src/cherry.png"
 
 const cakeImg = new Image()
 cakeImg.src = "./src/cake.png"
-
-let pacmanFrame = 0
-let pacmanFrameTick = 0
-const PACMAN_FRAMES = 6
-const PACMAN_DELAY = 1
-
-const cellsize = 25
-const rows = 20
-const cols = 20
 
 let speedX = 0
 let speedY = 0
@@ -30,7 +24,21 @@ let cakeExists = false
 let scoreElem
 let snakeBody = []
 let curDirection = "Right"
-let cakeChance = 0.2
+let cakeChance = 1
+
+
+let pacmanFrame = 0
+let pacmanFrameTick = 0
+let poisonedTick = 0
+let poisoned = false
+const PACMAN_FRAMES = 6
+const PACMAN_DELAY = 1
+const POISONED_TICKS = 12
+
+
+const cellsize = 25
+const rows = 20
+const cols = 20
 
 function setNewGame() {
     scoreElem = this.document.getElementById("scoreText")
@@ -105,10 +113,43 @@ function drawRotatedSegment(context, image, x, y, cellsize, angle, frame) {
 }
 
 function drawSnake(context) {
+    const poisonCount = Math.ceil((snakeBody.length) / 2)
 
+    if (poisoned) {
 
-    for (let i = 0; i < snakeBody.length; i++) {
+        for (let i = snakeBody.length - 1; i >= poisonCount; i--) {
 
+            let angle = 0
+
+            if (snakeBody[i][2] === "Right") angle = 0
+            if (snakeBody[i][2] === "Left") angle = Math.PI
+            if (snakeBody[i][2] === "Up") angle = -Math.PI / 2
+            if (snakeBody[i][2] === "Down") angle = Math.PI / 2
+
+            drawRotatedSegment(context, pacmanImg, snakeBody[i][0] * cellsize, snakeBody[i][1] * cellsize, cellsize, angle, pacmanFrame)
+        }
+        drawPoisonedTail(context)
+
+    } else {
+        for (let i = 0; i < snakeBody.length; i++) {
+
+            let angle = 0
+
+            if (snakeBody[i][2] === "Right") angle = 0
+            if (snakeBody[i][2] === "Left") angle = Math.PI
+            if (snakeBody[i][2] === "Up") angle = -Math.PI / 2
+            if (snakeBody[i][2] === "Down") angle = Math.PI / 2
+
+            drawRotatedSegment(context, pacmanImg, snakeBody[i][0] * cellsize, snakeBody[i][1] * cellsize, cellsize, angle, pacmanFrame)
+        }
+    }
+}
+
+function drawPoisonedTail(context) {
+
+    const poisonCount = Math.ceil((snakeBody.length) / 2)
+
+    for (let i = 0; i < poisonCount; i++) {
         let angle = 0
 
         if (snakeBody[i][2] === "Right") angle = 0
@@ -116,13 +157,15 @@ function drawSnake(context) {
         if (snakeBody[i][2] === "Up") angle = -Math.PI / 2
         if (snakeBody[i][2] === "Down") angle = Math.PI / 2
 
-        drawRotatedSegment(context, pacmanImg, snakeBody[i][0] * cellsize, snakeBody[i][1] * cellsize, cellsize, angle, pacmanFrame)
+        drawRotatedSegment(context, pacmanPoisonImg, snakeBody[i][0] * cellsize, snakeBody[i][1] * cellsize, cellsize, angle, pacmanFrame)
     }
 }
 
 function updateBoard(context) {
     context.fillStyle = "black"
     context.fillRect(0, 0, context.canvas.width, context.canvas.height)
+
+    const poisonCount = Math.ceil((snakeBody.length) / 2)
 
     if (gameOver) {
         context.fillStyle = "white"
@@ -178,15 +221,25 @@ function updateBoard(context) {
         }
 
         if (snakeX == cakeX && snakeY == cakeY) {
-
-            snakeLength = Math.floor(snakeLength / 2)
-            while ((snakeBody.length > snakeLength)&&snakeBody.length>1) {
-                snakeBody.shift()
-            }
+            poisoned = true
+            poisonedTick = 0
 
             cakeExists = false
             cakeX = null
             cakeY = null
+        }
+
+
+        if (poisoned) {
+            poisonedTick++
+
+            if (poisonedTick >= POISONED_TICKS) {
+                poisoned = false
+                poisonedTick = 0
+
+                snakeBody.splice(0, poisonCount)
+                snakeLength = snakeBody.length
+            }
         }
 
         pacmanFrameTick++
@@ -261,7 +314,6 @@ function handlePressedKey(e) {
                 }
 }
 
-
 window.onload = function () {
 
     const boardElem = document.getElementById("board")
@@ -274,6 +326,4 @@ window.onload = function () {
 
     document.addEventListener("keyup", handlePressedKey)
     this.setInterval(() => updateBoard(context), 1000 / 10)
-
-
 }
