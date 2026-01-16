@@ -1,5 +1,9 @@
 const pacmanImg = new Image()
-pacmanImg.src = "./src/pacman.png"
+pacmanImg.src = "./src/pacman1.png"
+
+const foodImg = new Image()
+foodImg.src = "./src/cherry.png"
+
 let pacmanFrame = 0
 let pacmanFrameTick = 0
 const PACMAN_FRAMES = 6
@@ -47,8 +51,11 @@ function setNewGame() {
 }
 
 function drawFoodBox(context) {
-    context.fillStyle = "crimson"
-    context.fillRect(foodX * cellsize, foodY * cellsize, cellsize, cellsize)
+    context.drawImage(
+        foodImg,
+        foodX * cellsize, foodY * cellsize, cellsize, cellsize,
+    )
+
 }
 
 function newFoodPos() {
@@ -60,7 +67,7 @@ function newFoodPos() {
 function drawRotatedSegment(context, image, x, y, cellsize, angle, frame) {
     context.save();
     context.translate(x + cellsize / 2, y + cellsize / 2);
-   
+
     if (angle === Math.PI) {
         context.scale(-1, 1)
     } else {
