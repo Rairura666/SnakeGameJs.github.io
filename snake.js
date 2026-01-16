@@ -213,25 +213,41 @@ function drawPoisonedTail(context) {
     }
 }
 
-function changeGhostDirection(ghost) {
-    const directions = ["Right", "Left", "Up", "Down"]
-    ghost.curDir = directions[Math.floor(Math.random() * directions.length)]
-
-    if (ghost.curDir === "Up") {
+function giveGhostNewDir(ghost, newDir) {
+    ghost.curDir = newDir
+    if (newDir === "Up") {
         ghost.ghostSpeedY = -1
         ghost.ghostSpeedX = 0
     }
-    if (ghost.curDir === "Down") {
+    if (newDir === "Down") {
         ghost.ghostSpeedY = 1
         ghost.ghostSpeedX = 0
     }
-    if (ghost.curDir === "Left") {
+    if (newDir === "Left") {
         ghost.ghostSpeedX = -1
         ghost.ghostSpeedY = 0
     }
-    if (ghost.curDir === "Right") {
+    if (newDir === "Right") {
         ghost.ghostSpeedX = 1
         ghost.ghostSpeedY = 0
+    }
+}
+
+function checkIfTheFoodCloseToTheGhost(ghost) {
+    if ((Math.abs(ghost.x - foodX) <= 3) && (Math.abs(ghost.y - foodY) <= 3)) return true
+    return false
+}
+
+function changeGhostDirection(ghost) {
+    if (checkIfTheFoodCloseToTheGhost(ghost)) {
+        if (ghost.x > foodX) giveGhostNewDir(ghost, "Left")
+        else if (ghost.x < foodX) giveGhostNewDir(ghost, "Right")
+        else if (ghost.y > foodY) giveGhostNewDir(ghost, "Up")
+        else if (ghost.y < foodY) giveGhostNewDir(ghost, "Down")
+    }
+    else {
+        const directions = ["Right", "Left", "Up", "Down"]
+        giveGhostNewDir(ghost, directions[Math.floor(Math.random() * directions.length)])
     }
 }
 
@@ -345,6 +361,15 @@ function updateBoard(context) {
                 changeGhostDirection(ghost)
                 ghost.changeTick = 0
                 ghost.changeDelay = Math.floor(Math.random() * (ghostMaxChangeDirDelay - ghostMinChangeDirDelay + 1)) + ghostMinChangeDirDelay
+            }
+
+            if(checkIfTheFoodCloseToTheGhost(ghost))
+            {
+                changeGhostDirection(ghost)
+            }
+
+            if (ghost.x == foodX && ghost.y == foodY) {
+                newFoodPos()
             }
 
             drawGhost(context, ghost)
