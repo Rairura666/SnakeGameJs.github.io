@@ -1,3 +1,10 @@
+const pacmanImg = new Image()
+pacmanImg.src = "./src/pacman.png"
+let pacmanFrame = 0
+let pacmanFrameTick = 0
+const PACMAN_FRAMES = 6
+const PACMAN_DELAY = 1
+
 const cellsize = 25
 const rows = 20
 const cols = 20
@@ -53,14 +60,26 @@ function drawSnake(context) {
     context.fillStyle = "yellow"
 
     for (let i = 0; i < snakeBody.length; i++) {
-        context.fillRect(snakeBody[i][0] * cellsize, snakeBody[i][1] * cellsize, cellsize, cellsize)
+        // context.fillRect(snakeBody[i][0] * cellsize, snakeBody[i][1] * cellsize, cellsize, cellsize)
+
+        context.drawImage(
+            pacmanImg,
+            pacmanFrame * cellsize,
+            0,
+            cellsize,
+            cellsize,
+            snakeBody[i][0] * cellsize,
+            snakeBody[i][1] * cellsize,
+            cellsize,
+            cellsize
+        )
     }
 
 
 }
 
 function updateBoard(context) {
-    context.fillStyle = "blue"
+    context.fillStyle = "black"
     context.fillRect(0, 0, context.canvas.width, context.canvas.height)
 
     if (gameOver) {
@@ -100,21 +119,30 @@ function updateBoard(context) {
         if (snakeBody.length > snakeLength) {
             snakeBody.shift()
         }
-        
-        for (let i = 0; i < snakeBody.length-1; i++) {
+
+        for (let i = 0; i < snakeBody.length - 1; i++) {
             if (snakeX == snakeBody[i][0] && snakeY == snakeBody[i][1]) {
                 gameOver = true
             }
         }
-
-        drawFoodBox(context)
-        drawSnake(context)
 
         if (snakeX == foodX && snakeY == foodY) {
             newFoodPos()
             snakeLength += 1
             scoreElem.innerText = `Score: ${snakeLength - 1}`
         }
+
+        pacmanFrameTick++
+        if (pacmanFrameTick >= PACMAN_DELAY) {
+            pacmanFrame = (pacmanFrame + 1) % PACMAN_FRAMES
+            pacmanFrameTick = 0
+        }
+
+
+        drawFoodBox(context)
+        drawSnake(context)
+
+
     }
 }
 
