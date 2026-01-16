@@ -10,6 +10,9 @@ foodImg.src = "./src/cherry.png"
 const cakeImg = new Image()
 cakeImg.src = "./src/cake.png"
 
+const ghostImg = new Image()
+ghostImg.src = "./src/ghost.png"
+
 let speedX = 0
 let speedY = 0
 let snakeX
@@ -25,7 +28,7 @@ let scoreElem
 let snakeBody = []
 let curDirection = "Right"
 let cakeChance = 0.5
-
+let ghosts = []
 
 let pacmanFrame = 0
 let pacmanFrameTick = 0
@@ -34,7 +37,8 @@ let poisoned = false
 const PACMAN_FRAMES = 6
 const PACMAN_DELAY = 1
 const POISONED_TICKS = 12
-
+const ghostMinChangeDirDelay = 3
+const ghostMaxChangeDirDelay = 20
 
 const cellsize = 25
 const rows = 20
@@ -53,11 +57,13 @@ function setNewGame() {
     foodY = null
     scoreElem
     snakeBody = []
+    ghosts = []
     curDirection = "Right"
     poisonedTick = 0
     poisoned = false
     cakeExists = false
     tryCakeAppear()
+    spawnGhost()
 
     const { x: startSnakeX, y: startSnakeY } = randomizeCell()
     snakeX = startSnakeX
@@ -70,12 +76,53 @@ function setNewGame() {
 
 }
 
+function spawnGhost() {
+    const { x, y } = randomizeCell()
+    const directions = ["Right", "Left", "Up", "Down"]
+    const curDir = directions[Math.floor(Math.random() * directions.length)]
+
+    let ghostSpeedX = 0
+    let ghostSpeedY = 0
+
+    if (curDir === "Up") {
+        ghostSpeedY = -1
+        ghostSpeedX = 0
+    }
+    if (curDir === "Down") {
+        ghostSpeedY = 1
+        ghostSpeedX = 0
+    }
+    if (curDir === "Left") {
+        ghostSpeedX = -1
+        ghostSpeedY = 0
+    }
+    if (curDir === "Right") {
+        ghostSpeedX = 1
+        ghostSpeedY = 0
+    }
+
+    ghosts.push({
+        x, y,
+        curDir,
+        ghostSpeedX, ghostSpeedY,
+        changeTick: 0,
+        changeDelay: Math.floor(Math.random() * (ghostMaxChangeDirDelay - ghostMinChangeDirDelay + 1)) + ghostMinChangeDirDelay
+    })
+}
+
+function drawGhost(context, ghost) {
+    context.drawImage(
+        ghostImg,
+        ghost.x * cellsize, ghost.y * cellsize, cellsize, cellsize,
+    )
+}
+
+
 function drawFoodBox(context) {
     context.drawImage(
         foodImg,
         foodX * cellsize, foodY * cellsize, cellsize, cellsize,
     )
-
 }
 
 function newFoodPos() {
@@ -166,6 +213,28 @@ function drawPoisonedTail(context) {
     }
 }
 
+function changeGhostDirection(ghost) {
+    const directions = ["Right", "Left", "Up", "Down"]
+    ghost.curDir = directions[Math.floor(Math.random() * directions.length)]
+
+    if (ghost.curDir === "Up") {
+        ghost.ghostSpeedY = -1
+        ghost.ghostSpeedX = 0
+    }
+    if (ghost.curDir === "Down") {
+        ghost.ghostSpeedY = 1
+        ghost.ghostSpeedX = 0
+    }
+    if (ghost.curDir === "Left") {
+        ghost.ghostSpeedX = -1
+        ghost.ghostSpeedY = 0
+    }
+    if (ghost.curDir === "Right") {
+        ghost.ghostSpeedX = 1
+        ghost.ghostSpeedY = 0
+    }
+}
+
 function updateBoard(context) {
     context.fillStyle = "black"
     context.fillRect(0, 0, context.canvas.width, context.canvas.height)
@@ -253,8 +322,37 @@ function updateBoard(context) {
             pacmanFrameTick = 0
         }
 
+        ghosts.forEach(ghost => {
+            ghost.x += ghost.ghostSpeedX
+            ghost.y += ghost.ghostSpeedY
+
+            if (ghost.x < 0) {
+                ghost.x = cols - 1
+            }
+            if (ghost.x > (cols - 1)) {
+                ghost.x = 0
+            }
+            if (ghost.y < 0) {
+                ghost.y = rows - 1
+            }
+            if (ghost.y > (rows - 1)) {
+                ghost.y = 0
+            }
+
+            ghost.changeTick++
+
+            if (ghost.changeTick >= ghost.changeDelay) {
+                changeGhostDirection(ghost)
+                ghost.changeTick = 0
+                ghost.changeDelay = Math.floor(Math.random() * (ghostMaxChangeDirDelay - ghostMinChangeDirDelay + 1)) + ghostMinChangeDirDelay
+            }
+
+            drawGhost(context, ghost)
+        });
+
         drawFoodBox(context)
         drawSnake(context)
+
 
         if (cakeX != null && cakeY != null) {
             drawCake(context)
