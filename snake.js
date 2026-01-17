@@ -1,3 +1,7 @@
+const bgMusic = new Audio("Src/music.mp3");
+bgMusic.loop = true;
+bgMusic.volume = 0.4;
+
 const gameOverImg = new Image()
 gameOverImg.src = "Src/GameoverScreen.png"
 
@@ -20,6 +24,7 @@ cakeImg.src = "Src/cake.png"
 const ghostImg = new Image()
 ghostImg.src = "Src/ghost.png"
 
+let musicStarted = false;
 let speedX = 0
 let speedY = 0
 let snakeX
@@ -58,7 +63,7 @@ let gameoverFrameTick = 0
 const GAMEOVER_FRAMES = 6
 const GAMEOVER_DELAY = 5
 
-const ghostAppearChance = 0.1
+const ghostAppearChance = 0.25
 
 const cellsize = 25
 const rows = 20
@@ -659,7 +664,7 @@ function handlePressedKey(e) {
             }
 
         } else
-            if (e.code == "ArrowLeft" ||e.code === "KeyA") {
+            if (e.code == "ArrowLeft" || e.code === "KeyA") {
                 if (speedX != 1) {
                     speedX = -1
                     speedY = 0
@@ -684,7 +689,12 @@ window.onload = function () {
     boardElem.height = cellsize * rows
     const context = boardElem.getContext("2d")
     scoreElem = this.document.getElementById("scoreText")
-
+    document.addEventListener("keydown", () => {
+        if (!musicStarted) {
+            bgMusic.play();
+            musicStarted = true;
+        }
+    });
     setNewGame()
 
     document.addEventListener("keyup", handlePressedKey)
