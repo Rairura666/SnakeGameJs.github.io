@@ -1,3 +1,7 @@
+const gameOverImg = new Image()
+gameOverImg.src = "./src/gameover_screen.png"
+
+
 const pacmanImg = new Image()
 pacmanImg.src = "./src/pacman.png"
 
@@ -46,6 +50,14 @@ const POISONED_TICKS = 12
 const ghostMinChangeDirDelay = 3
 const ghostMaxChangeDirDelay = 20
 
+let gameOverStartTime = 0
+const GAMEOVER_BLOCK_DURATION = 1000
+
+let gameoverFrame = 0
+let gameoverFrameTick = 0
+const GAMEOVER_FRAMES = 6
+const GAMEOVER_DELAY = 5
+
 const ghostAppearChance = 0.1
 
 const cellsize = 25
@@ -70,6 +82,7 @@ function setNewGame() {
     poisoned = false
     ghostChance = 0.4
     isPacmanStrong = false
+    gameOverStartTime = 0
     tryCakeAppear()
     spawnGhost(randomizeCell())
 
@@ -387,19 +400,23 @@ function updateBoard(context) {
     const poisonCount = (Math.floor((snakeBody.length) / 2) >= 1) ? Math.ceil((snakeBody.length) / 2) : 0
 
     if (gameOver) {
-        context.fillStyle = "white"
-        context.font = "40px Arial"
-        context.textAlign = "center"
-        context.textBaseline = "middle"
 
-        context.fillText("Game Over", context.canvas.width / 2, context.canvas.height / 2)
+        gameoverFrameTick++
+        if (gameoverFrameTick >= GAMEOVER_DELAY) {
+            gameoverFrame = (gameoverFrame + 1) % GAMEOVER_FRAMES
+            gameoverFrameTick = 0
+        }
 
-        context.font = "20px Arial"
-        context.fillText(
-            "Press any key to restart",
-            context.canvas.width / 2,
-            context.canvas.height / 2 + 40
-        )
+        context.drawImage(
+            gameOverImg,
+            gameoverFrame * 500, 0,
+            500, 500,
+            0, 0,
+            context.canvas.width, context.canvas.height
+        );
+
+        return
+
     } else {
         const prevSnakeX = snakeX
         const prevSnakeY = snakeY
@@ -428,6 +445,7 @@ function updateBoard(context) {
         for (let i = 0; i < snakeBody.length - 1; i++) {
             if (snakeX == snakeBody[i][0] && snakeY == snakeBody[i][1]) {
                 gameOver = true
+                gameOverStartTime = Date.now()
             }
         }
 
@@ -569,6 +587,8 @@ function updateBoard(context) {
             if (sameCell || crossed || pacmanHitsGhostFromSide) {
                 if (!isPacmanStrong) {
                     gameOver = true
+                    gameOverStartTime = Date.now()
+
                 } else {
                     snakeLength += 5
                     if (poisoned)
@@ -615,9 +635,12 @@ function randomizeCell() {
 function handlePressedKey(e) {
 
     if (gameOver) {
-        setNewGame()
+        if (Date.now() - gameOverStartTime < GAMEOVER_BLOCK_DURATION) {
+           return
+        }
 
-        return
+         setNewGame()
+         return
     }
 
     if (e.code == "ArrowUp") {
