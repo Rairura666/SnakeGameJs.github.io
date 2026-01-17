@@ -332,6 +332,14 @@ function updateBoard(context) {
             }
         }
 
+        ghosts.forEach(g => {
+             if(snakeX == g.x && snakeY == g.y){
+                gameOver = true
+        }
+        });
+       
+
+
         if (snakeX == cakeX && snakeY == cakeY) {
             poisoned = true
             poisonedTick = 0
