@@ -1,24 +1,24 @@
 const gameOverImg = new Image()
-gameOverImg.src = "src/gameoverScreen.png"
+gameOverImg.src = "Src/gameoverScreen.png"
 
 
 const pacmanImg = new Image()
-pacmanImg.src = "src/pacman.png"
+pacmanImg.src = "Src/pacman.png"
 
 const pacmanPoisonImg = new Image()
-pacmanPoisonImg.src = "src/pacmanPoison.png"
+pacmanPoisonImg.src = "Src/pacmanPoison.png"
 
 const pacmanStrongImg = new Image()
-pacmanStrongImg.src = "src/pacmanStrong.png"
+pacmanStrongImg.src = "Src/pacmanStrong.png"
 
 const foodImg = new Image()
-foodImg.src = "src/cherry.png"
+foodImg.src = "Src/cherry.png"
 
 const cakeImg = new Image()
-cakeImg.src = "src/cake.png"
+cakeImg.src = "Src/cake.png"
 
 const ghostImg = new Image()
-ghostImg.src = "src/ghost.png"
+ghostImg.src = "Src/ghost.png"
 
 let speedX = 0
 let speedY = 0
