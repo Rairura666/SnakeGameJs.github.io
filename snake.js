@@ -35,12 +35,15 @@ let foodX = null
 let foodY = null
 let cakes = []
 let scoreElem
+let maxScoreElem
 let snakeBody = []
 let curDirection = "Right"
 let cakeChance = 0.5
 let ghostChance = 0.4
 let ghostChanceToEatCake = 0.1
 let ghosts = []
+let maxScore = 0
+
 
 let isPacmanStrong = false
 let strongTick = 0
@@ -609,6 +612,12 @@ function updateBoard(context) {
             tryGhostAppear()
         }
 
+        if ((snakeLength - 1) > maxScore) {
+            maxScore = snakeLength - 1
+            maxScoreElem.innerText = `Max score: ${maxScore}`
+        }
+
+
         drawFoodBox(context)
         drawSnake(context)
 
@@ -688,7 +697,8 @@ window.onload = function () {
     boardElem.width = cellsize * cols
     boardElem.height = cellsize * rows
     const context = boardElem.getContext("2d")
-    scoreElem = this.document.getElementById("scoreText")
+     scoreElem = this.document.getElementById("scoreText")
+     maxScoreElem = this.document.getElementById("maxScoreText")
     document.addEventListener("keydown", () => {
         if (!musicStarted) {
             bgMusic.play();
