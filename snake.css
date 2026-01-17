@@ -35,6 +35,7 @@ body {
 #board {
     border: 4px solid #00FF00;
     background-color: black;
+    box-shadow: 0 0 10px #00FF00;
 }
 
 #Rules {
