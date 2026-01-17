@@ -439,6 +439,8 @@ function updateBoard(context) {
             poisoned = true
             poisonedTick = 0
 
+            scoreElem.innerText = `Score: ${snakeLength - poisonCount -1}`
+
             cakeExists = false
             cakeX = null
             cakeY = null
@@ -539,7 +541,7 @@ function updateBoard(context) {
 
             const sameCell = snakeX === ghost.x && snakeY === ghost.y
 
-            if (sameCell || crossed  || pacmanHitsGhostFromSide) {
+            if (sameCell || crossed || pacmanHitsGhostFromSide) {
                 if (!isPacmanStrong) {
                     gameOver = true
                 } else {
@@ -586,7 +588,7 @@ function handlePressedKey(e) {
             speedX = 0
             speedY = -1
             curDirection = "Up"
-        } 
+        }
 
     } else
         if (e.code == "ArrowDown") {
@@ -594,7 +596,7 @@ function handlePressedKey(e) {
                 speedX = 0
                 speedY = 1
                 curDirection = "Down"
-            } 
+            }
 
         } else
             if (e.code == "ArrowLeft") {
@@ -602,7 +604,7 @@ function handlePressedKey(e) {
                     speedX = -1
                     speedY = 0
                     curDirection = "Left"
-                } 
+                }
 
             } else
                 if (e.code == "ArrowRight") {
@@ -610,7 +612,7 @@ function handlePressedKey(e) {
                         speedX = 1
                         speedY = 0
                         curDirection = "Right"
-                    } 
+                    }
 
                 }
 }
