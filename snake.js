@@ -66,7 +66,7 @@ let gameoverFrameTick = 0
 const GAMEOVER_FRAMES = 6
 const GAMEOVER_DELAY = 5
 
-const ghostAppearChance = 0.25
+
 
 const cellsize = 25
 const rows = 20
@@ -465,6 +465,7 @@ function updateBoard(context) {
         }
 
         if (snakeX == foodX && snakeY == foodY) {
+            tryCakeAppear()
             newFoodPos()
             snakeLength += 1
             isPacmanStrong = true
@@ -473,8 +474,6 @@ function updateBoard(context) {
                 scoreElem.innerText = `Score: ${snakeLength - poisonCount - 1}`
             else
                 scoreElem.innerText = `Score: ${snakeLength - 1}`
-            tryCakeAppear()
-
         }
 
 
@@ -556,7 +555,6 @@ function updateBoard(context) {
                 if (ghost.x == foodX && ghost.y == foodY) {
                     newFoodPos()
                     if (Math.random() <= ghostChance) {
-
                         spawnGhost({ x: ghost.x, y: ghost.y })
                         ghostChance /= 2
                     }
@@ -604,6 +602,7 @@ function updateBoard(context) {
                     else
                         scoreElem.innerText = `Score: ${snakeLength - 1}`
                     ghosts = ghosts.filter(g => g.id !== ghost.id)
+                    ghostChance *= 2
                 }
             }
         });
@@ -634,7 +633,7 @@ function tryCakeAppear() {
 }
 
 function tryGhostAppear() {
-    if (Math.random() < ghostAppearChance) {
+    if (Math.random() < ghostChance) {
         spawnGhost(randomizeCell())
     }
 }
@@ -697,8 +696,8 @@ window.onload = function () {
     boardElem.width = cellsize * cols
     boardElem.height = cellsize * rows
     const context = boardElem.getContext("2d")
-     scoreElem = this.document.getElementById("scoreText")
-     maxScoreElem = this.document.getElementById("maxScoreText")
+    scoreElem = this.document.getElementById("scoreText")
+    maxScoreElem = this.document.getElementById("maxScoreText")
     document.addEventListener("keydown", () => {
         if (!musicStarted) {
             bgMusic.play();
