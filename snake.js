@@ -28,6 +28,7 @@ let scoreElem
 let snakeBody = []
 let curDirection = "Right"
 let cakeChance = 0.5
+let ghostChance = 0.2
 let ghosts = []
 
 let pacmanFrame = 0
@@ -57,11 +58,12 @@ function setNewGame() {
     foodY = null
     scoreElem
     snakeBody = []
-    ghosts = []
+    ghosts.length = 0
     curDirection = "Right"
     poisonedTick = 0
     poisoned = false
     cakeExists = false
+    ghostChance = 0.2
     tryCakeAppear()
     spawnGhost()
 
@@ -231,6 +233,8 @@ function giveGhostNewDir(ghost, newDir) {
         ghost.ghostSpeedX = 1
         ghost.ghostSpeedY = 0
     }
+    ghost.changeTick = 0
+    ghost.changeDelay = Math.floor(Math.random() * (ghostMaxChangeDirDelay - ghostMinChangeDirDelay + 1)) + ghostMinChangeDirDelay
 }
 
 function checkIfTheFoodCloseToTheGhost(ghost) {
@@ -338,41 +342,77 @@ function updateBoard(context) {
             pacmanFrameTick = 0
         }
 
+
+
         ghosts.forEach(ghost => {
+            drawGhost(context, ghost)
             ghost.x += ghost.ghostSpeedX
             ghost.y += ghost.ghostSpeedY
-
-            if (ghost.x < 0) {
-                ghost.x = cols - 1
-            }
-            if (ghost.x > (cols - 1)) {
-                ghost.x = 0
-            }
-            if (ghost.y < 0) {
-                ghost.y = rows - 1
-            }
-            if (ghost.y > (rows - 1)) {
-                ghost.y = 0
-            }
 
             ghost.changeTick++
 
             if (ghost.changeTick >= ghost.changeDelay) {
                 changeGhostDirection(ghost)
-                ghost.changeTick = 0
-                ghost.changeDelay = Math.floor(Math.random() * (ghostMaxChangeDirDelay - ghostMinChangeDirDelay + 1)) + ghostMinChangeDirDelay
             }
 
-            if(checkIfTheFoodCloseToTheGhost(ghost))
-            {
-                changeGhostDirection(ghost)
+            if (ghost.x <= 0 && ghost.y <= 0) {
+                const curDirs = ["Right", "Down"]
+                giveGhostNewDir(ghost, curDirs[Math.floor(Math.random() * curDirs.length)])
             }
-
-            if (ghost.x == foodX && ghost.y == foodY) {
-                newFoodPos()
+            else if (ghost.x <= 0 && ghost.y >= rows - 1) {
+                const curDirs = ["Right", "Up"]
+                giveGhostNewDir(ghost, curDirs[Math.floor(Math.random() * curDirs.length)])
             }
+            else if (ghost.x >= cols - 1 && ghost.y <= 0) {
+                const curDirs = ["Left", "Down"]
+                giveGhostNewDir(ghost, curDirs[Math.floor(Math.random() * curDirs.length)])
+            }
+            else if (ghost.x >= cols - 1 && ghost.y >= rows - 1) {
+                const curDirs = ["Left", "Up"]
+                giveGhostNewDir(ghost, curDirs[Math.floor(Math.random() * curDirs.length)])
+            }
+            else {
+                switch (true) {
+                    case ((ghost.x <= 0) && ghost.curDir === "Left"): {
+                        const curDirs = ["Up", "Down", "Right"]
+                        giveGhostNewDir(ghost, curDirs[Math.floor(Math.random() * curDirs.length)])
+                        break
+                    }
 
-            drawGhost(context, ghost)
+                    case ((ghost.x >= (cols - 1)) && ghost.curDir === "Right"): {
+                        const curDirs = ["Up", "Down", "Left"]
+                        giveGhostNewDir(ghost, curDirs[Math.floor(Math.random() * curDirs.length)])
+                        break
+                    }
+
+                    case ((ghost.y <= 0) && ghost.curDir === "Up"): {
+                        const curDirs = ["Left", "Down", "Right"]
+                        giveGhostNewDir(ghost, curDirs[Math.floor(Math.random() * curDirs.length)])
+                        break
+                    }
+
+                    case ((ghost.y >= (rows - 1)) && ghost.curDir === "Down"): {
+                        const curDirs = ["Left", "Up", "Right"]
+                        giveGhostNewDir(ghost, curDirs[Math.floor(Math.random() * curDirs.length)])
+                        break
+                    }
+                }
+
+
+                if (checkIfTheFoodCloseToTheGhost(ghost)) {
+                    changeGhostDirection(ghost)
+                }
+
+                if (ghost.x == foodX && ghost.y == foodY) {
+                    newFoodPos()
+                    if (Math.random() <= ghostChance) {
+                        spawnGhost()
+                        ghostChance /= 2
+                    }
+                }
+
+
+            }
         });
 
         drawFoodBox(context)
