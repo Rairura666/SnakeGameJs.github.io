@@ -5,15 +5,33 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="snake.css">
-
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <title>Document</title>
 </head>
 
 <body>
+    <div id="topContainer">
+        <p id="scoreText">Score: 0</p>
+    </div>
 
-    <h1>Snake game</h1>
-    <p id="scoreText">Score: 0</p>
-    <canvas id="board"></canvas>
+    <div id="gameRow">
+        <div id="gameArea">
+            <canvas id="board"></canvas>
+        </div>
+
+        <div id="Rules">
+            <h1 id="RulesTitle">Rules</h1>
+            <p>▶ Use arrows or WASD to move.</p>
+            <p>▶ Cherry adds 1 point.</p>
+            <p>▶ Cake is poisonous, cuts half of the snakeman.</p>
+            <p>▶ Ghosts eat cherries too.</p>
+            <p>▶ When a ghost eats a cherry there is a chance to spawn another ghost.</p>
+            <p>▶ There is some chance that a ghost will eat a cake and die.</p>
+            <p>▶ After eating a cherry the snakeman becomes strong and is able to eat ghosts.</p>
+            <p>▶ Weak snakeman dies if tries to eat a ghost.</p>
+            <p>▶ An eated ghost adds 5 points.</p>
+        </div>
+    </div>
 
     <script src="snake.js"></script>
 </body>
