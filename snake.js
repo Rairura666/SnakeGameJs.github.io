@@ -28,7 +28,7 @@ let cakes = []
 let scoreElem
 let snakeBody = []
 let curDirection = "Right"
-let cakeChance = 0.3
+let cakeChance = 0.5
 let ghostChance = 0.4
 let ghostChanceToEatCake = 0.1
 let ghosts = []
@@ -443,7 +443,10 @@ function updateBoard(context) {
             snakeLength += 1
             isPacmanStrong = true
             strongTick = STRONG_TICKS
-            scoreElem.innerText = `Score: ${snakeLength - 1}`
+            if (poisoned)
+                scoreElem.innerText = `Score: ${snakeLength - poisonCount - 1}`
+            else
+                scoreElem.innerText = `Score: ${snakeLength - 1}`
             tryCakeAppear()
 
         }
@@ -568,7 +571,10 @@ function updateBoard(context) {
                     gameOver = true
                 } else {
                     snakeLength += 5
-                    scoreElem.innerText = `Score: ${snakeLength - 1}`
+                    if (poisoned)
+                        scoreElem.innerText = `Score: ${snakeLength - poisonCount - 1}`
+                    else
+                        scoreElem.innerText = `Score: ${snakeLength - 1}`
                     ghosts = ghosts.filter(g => g.id !== ghost.id)
                 }
             }
