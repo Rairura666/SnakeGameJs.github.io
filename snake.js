@@ -103,13 +103,16 @@ function spawnGhost() {
         ghostSpeedY = 0
     }
 
-    ghosts.push({
+    const newGhost = {
         x, y,
         curDir,
         ghostSpeedX, ghostSpeedY,
         changeTick: 0,
-        changeDelay: Math.floor(Math.random() * (ghostMaxChangeDirDelay - ghostMinChangeDirDelay + 1)) + ghostMinChangeDirDelay
-    })
+        changeDelay: Math.floor(Math.random() * (ghostMaxChangeDirDelay - ghostMinChangeDirDelay + 1)) + ghostMinChangeDirDelay,
+    }
+
+    newGhost.availableDirs = getAvailableDirs(newGhost)
+    ghosts.push(newGhost)
 }
 
 function drawGhost(context, ghost) {
@@ -129,6 +132,9 @@ function drawFoodBox(context) {
 
 function newFoodPos() {
     const { x, y } = randomizeCell()
+    while ((x == 0 && y == 0) || (x == cols - 1 && y == 0) || (x == 0 && y == rows - 1) || (x == cols - 1 && y == rows - 1)) {
+        x, y = randomizeCell()
+    }
     foodX = x
     foodY = y
 }
@@ -235,6 +241,7 @@ function giveGhostNewDir(ghost, newDir) {
     }
     ghost.changeTick = 0
     ghost.changeDelay = Math.floor(Math.random() * (ghostMaxChangeDirDelay - ghostMinChangeDirDelay + 1)) + ghostMinChangeDirDelay
+    ghost.availableDirs = getAvailableDirs(ghost)
 }
 
 function checkIfTheFoodCloseToTheGhost(ghost) {
@@ -250,9 +257,20 @@ function changeGhostDirection(ghost) {
         else if (ghost.y < foodY) giveGhostNewDir(ghost, "Down")
     }
     else {
-        const directions = ["Right", "Left", "Up", "Down"]
+        const directions = ghost.availableDirs
         giveGhostNewDir(ghost, directions[Math.floor(Math.random() * directions.length)])
     }
+}
+
+function getAvailableDirs(ghost) {
+    const dirs = []
+
+    if (ghost.x > 0) dirs.push("Left")
+    if (ghost.x < cols - 1) dirs.push("Right")
+    if (ghost.y > 0) dirs.push("Up")
+    if (ghost.y < rows - 1) dirs.push("Down")
+
+    return dirs
 }
 
 function updateBoard(context) {
@@ -345,59 +363,20 @@ function updateBoard(context) {
 
 
         ghosts.forEach(ghost => {
-            drawGhost(context, ghost)
-            ghost.x += ghost.ghostSpeedX
-            ghost.y += ghost.ghostSpeedY
 
-            ghost.changeTick++
-
-            if (ghost.changeTick >= ghost.changeDelay) {
-                changeGhostDirection(ghost)
-            }
-
-            if (ghost.x <= 0 && ghost.y <= 0) {
-                const curDirs = ["Right", "Down"]
-                giveGhostNewDir(ghost, curDirs[Math.floor(Math.random() * curDirs.length)])
-            }
-            else if (ghost.x <= 0 && ghost.y >= rows - 1) {
-                const curDirs = ["Right", "Up"]
-                giveGhostNewDir(ghost, curDirs[Math.floor(Math.random() * curDirs.length)])
-            }
-            else if (ghost.x >= cols - 1 && ghost.y <= 0) {
-                const curDirs = ["Left", "Down"]
-                giveGhostNewDir(ghost, curDirs[Math.floor(Math.random() * curDirs.length)])
-            }
-            else if (ghost.x >= cols - 1 && ghost.y >= rows - 1) {
-                const curDirs = ["Left", "Up"]
-                giveGhostNewDir(ghost, curDirs[Math.floor(Math.random() * curDirs.length)])
+            if ((ghost.x <= 0 && ghost.y <= 0) ||
+                (ghost.x <= 0 && ghost.y >= rows - 1) ||
+                (ghost.x >= cols - 1 && ghost.y <= 0) ||
+                (ghost.x >= cols - 1 && ghost.y >= rows - 1) ||
+                ((ghost.x <= 0) && ghost.curDir === "Left") ||
+                ((ghost.x >= (cols - 1)) && ghost.curDir === "Right") ||
+                ((ghost.y <= 0) && ghost.curDir === "Up") ||
+                ((ghost.y >= (rows - 1)) && ghost.curDir === "Down")
+            ) {
+                ghost.availableDirs = getAvailableDirs(ghost)
+                giveGhostNewDir(ghost, ghost.availableDirs[Math.floor(Math.random() * ghost.availableDirs.length)])
             }
             else {
-                switch (true) {
-                    case ((ghost.x <= 0) && ghost.curDir === "Left"): {
-                        const curDirs = ["Up", "Down", "Right"]
-                        giveGhostNewDir(ghost, curDirs[Math.floor(Math.random() * curDirs.length)])
-                        break
-                    }
-
-                    case ((ghost.x >= (cols - 1)) && ghost.curDir === "Right"): {
-                        const curDirs = ["Up", "Down", "Left"]
-                        giveGhostNewDir(ghost, curDirs[Math.floor(Math.random() * curDirs.length)])
-                        break
-                    }
-
-                    case ((ghost.y <= 0) && ghost.curDir === "Up"): {
-                        const curDirs = ["Left", "Down", "Right"]
-                        giveGhostNewDir(ghost, curDirs[Math.floor(Math.random() * curDirs.length)])
-                        break
-                    }
-
-                    case ((ghost.y >= (rows - 1)) && ghost.curDir === "Down"): {
-                        const curDirs = ["Left", "Up", "Right"]
-                        giveGhostNewDir(ghost, curDirs[Math.floor(Math.random() * curDirs.length)])
-                        break
-                    }
-                }
-
 
                 if (checkIfTheFoodCloseToTheGhost(ghost)) {
                     changeGhostDirection(ghost)
@@ -410,9 +389,16 @@ function updateBoard(context) {
                         ghostChance /= 2
                     }
                 }
-
-
             }
+
+            if (ghost.changeTick >= ghost.changeDelay) {
+                changeGhostDirection(ghost)
+            }
+            ghost.changeTick++
+            drawGhost(context, ghost)
+            ghost.x += ghost.ghostSpeedX
+            ghost.y += ghost.ghostSpeedY
+
         });
 
         drawFoodBox(context)
