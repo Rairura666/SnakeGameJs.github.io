@@ -1,5 +1,5 @@
 const gameOverImg = new Image()
-gameOverImg.src = "Src/gameoverScreen.png"
+gameOverImg.src = "Src/GameoverScreen.png"
 
 
 const pacmanImg = new Image()
