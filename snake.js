@@ -29,6 +29,7 @@ let snakeBody = []
 let curDirection = "Right"
 let cakeChance = 0.5
 let ghostChance = 0.2
+let ghostChanceToEatCake = 0.1
 let ghosts = []
 
 let pacmanFrame = 0
@@ -65,7 +66,7 @@ function setNewGame() {
     cakeExists = false
     ghostChance = 0.2
     tryCakeAppear()
-    spawnGhost()
+    spawnGhost(randomizeCell())
 
     const { x: startSnakeX, y: startSnakeY } = randomizeCell()
     snakeX = startSnakeX
@@ -78,8 +79,7 @@ function setNewGame() {
 
 }
 
-function spawnGhost() {
-    const { x, y } = randomizeCell()
+function spawnGhost({x,y}) {
     const directions = ["Right", "Left", "Up", "Down"]
     const curDir = directions[Math.floor(Math.random() * directions.length)]
 
@@ -104,6 +104,7 @@ function spawnGhost() {
     }
 
     const newGhost = {
+        id: crypto.randomUUID(),
         x, y,
         curDir,
         ghostSpeedX, ghostSpeedY,
@@ -249,6 +250,13 @@ function checkIfTheFoodCloseToTheGhost(ghost) {
     return false
 }
 
+
+function checkIfTheCakeCloseToTheGhost(ghost) {
+    if ((Math.abs(ghost.x - cakeX) <= 3) && (Math.abs(ghost.y - cakeY) <= 3)) return true
+    return false
+}
+
+
 function changeGhostDirection(ghost) {
     if (checkIfTheFoodCloseToTheGhost(ghost)) {
         if (ghost.x > foodX) giveGhostNewDir(ghost, "Left")
@@ -262,6 +270,13 @@ function changeGhostDirection(ghost) {
     }
 }
 
+function ghostGonnaEatACake(ghost) {
+    if (ghost.x > cakeX) giveGhostNewDir(ghost, "Left")
+    else if (ghost.x < cakeX) giveGhostNewDir(ghost, "Right")
+    else if (ghost.y > cakeY) giveGhostNewDir(ghost, "Up")
+    else if (ghost.y < cakeY) giveGhostNewDir(ghost, "Down")
+}
+
 function getAvailableDirs(ghost) {
     const dirs = []
 
@@ -271,6 +286,13 @@ function getAvailableDirs(ghost) {
     if (ghost.y < rows - 1) dirs.push("Down")
 
     return dirs
+}
+
+function ghostEatsACake(ghost) {
+    cakeExists = false
+    cakeX = null
+    cakeY = null
+    ghosts = ghosts.filter(g => g.id !== ghost.id)
 }
 
 function updateBoard(context) {
@@ -333,11 +355,11 @@ function updateBoard(context) {
         }
 
         ghosts.forEach(g => {
-             if(snakeX == g.x && snakeY == g.y){
+            if (snakeX == g.x && snakeY == g.y) {
                 gameOver = true
-        }
+            }
         });
-       
+
 
 
         if (snakeX == cakeX && snakeY == cakeY) {
@@ -390,13 +412,33 @@ function updateBoard(context) {
                     changeGhostDirection(ghost)
                 }
 
+                if(ghosts.length==1)
+                {
+                    if ((ghosts[0].curDir == "Up" && ghosts[0].y == cakeY+2) ||
+                    (ghosts[0].curDir == "Down" && ghosts[0].y == cakeY-2) ||
+                    (ghosts[0].curDir == "Right" && ghosts[0].x == cakeX-2) ||
+                    (ghosts[0].curDir == "Left" && ghosts[0].x == cakeX+2)
+                    )
+                    changeGhostDirection(ghost)
+                }else if (checkIfTheCakeCloseToTheGhost(ghost) && Math.random() <= ghostChanceToEatCake) {
+                    ghostGonnaEatACake(ghost)
+                }
+
+                if(ghost.x == cakeX && ghost.y == cakeY)
+                {
+                    ghostEatsACake(ghost)
+                }
+
                 if (ghost.x == foodX && ghost.y == foodY) {
                     newFoodPos()
                     if (Math.random() <= ghostChance) {
-                        spawnGhost()
+                        
+                        spawnGhost({ x: ghost.x, y: ghost.y })
                         ghostChance /= 2
                     }
                 }
+
+
             }
 
             if (ghost.changeTick >= ghost.changeDelay) {
