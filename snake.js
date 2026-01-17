@@ -4,6 +4,9 @@ pacmanImg.src = "./src/pacman.png"
 const pacmanPoisonImg = new Image()
 pacmanPoisonImg.src = "./src/pacman_poison.png"
 
+const pacmanStrongImg = new Image()
+pacmanStrongImg.src = "./src/pacman_strong.png"
+
 const foodImg = new Image()
 foodImg.src = "./src/cherry.png"
 
@@ -32,6 +35,9 @@ let ghostChance = 0.2
 let ghostChanceToEatCake = 0.1
 let ghosts = []
 
+let isPacmanStrong = false
+let strongTick = 0
+const STRONG_TICKS = 50
 let pacmanFrame = 0
 let pacmanFrameTick = 0
 let poisonedTick = 0
@@ -65,6 +71,7 @@ function setNewGame() {
     poisoned = false
     cakeExists = false
     ghostChance = 0.2
+    isPacmanStrong = false
     tryCakeAppear()
     spawnGhost(randomizeCell())
 
@@ -79,7 +86,7 @@ function setNewGame() {
 
 }
 
-function spawnGhost({x,y}) {
+function spawnGhost({ x, y }) {
     const directions = ["Right", "Left", "Up", "Down"]
     const curDir = directions[Math.floor(Math.random() * directions.length)]
 
@@ -110,6 +117,7 @@ function spawnGhost({x,y}) {
         ghostSpeedX, ghostSpeedY,
         changeTick: 0,
         changeDelay: Math.floor(Math.random() * (ghostMaxChangeDirDelay - ghostMinChangeDirDelay + 1)) + ghostMinChangeDirDelay,
+
     }
 
     newGhost.availableDirs = getAvailableDirs(newGhost)
@@ -176,34 +184,90 @@ function drawRotatedSegment(context, image, x, y, cellsize, angle, frame) {
 function drawSnake(context) {
     const poisonCount = (Math.floor((snakeBody.length) / 2) >= 1) ? Math.ceil((snakeBody.length) / 2) : 0
 
-    if (poisoned) {
+    if (!isPacmanStrong) {
+        if (poisoned) {
 
-        for (let i = snakeBody.length - 1; i >= poisonCount; i--) {
+            for (let i = snakeBody.length - 1; i >= poisonCount; i--) {
 
-            let angle = 0
+                let angle = 0
 
-            if (snakeBody[i][2] === "Right") angle = 0
-            if (snakeBody[i][2] === "Left") angle = Math.PI
-            if (snakeBody[i][2] === "Up") angle = -Math.PI / 2
-            if (snakeBody[i][2] === "Down") angle = Math.PI / 2
+                if (snakeBody[i][2] === "Right") angle = 0
+                if (snakeBody[i][2] === "Left") angle = Math.PI
+                if (snakeBody[i][2] === "Up") angle = -Math.PI / 2
+                if (snakeBody[i][2] === "Down") angle = Math.PI / 2
 
-            drawRotatedSegment(context, pacmanImg, snakeBody[i][0] * cellsize, snakeBody[i][1] * cellsize, cellsize, angle, pacmanFrame)
+                drawRotatedSegment(context, pacmanImg, snakeBody[i][0] * cellsize, snakeBody[i][1] * cellsize, cellsize, angle, pacmanFrame)
+            }
+            drawPoisonedTail(context)
+
         }
-        drawPoisonedTail(context)
+        else {
+            for (let i = 0; i < snakeBody.length; i++) {
 
+                let angle = 0
+
+                if (snakeBody[i][2] === "Right") angle = 0
+                if (snakeBody[i][2] === "Left") angle = Math.PI
+                if (snakeBody[i][2] === "Up") angle = -Math.PI / 2
+                if (snakeBody[i][2] === "Down") angle = Math.PI / 2
+
+                drawRotatedSegment(context, pacmanImg, snakeBody[i][0] * cellsize, snakeBody[i][1] * cellsize, cellsize, angle, pacmanFrame)
+            }
+        }
     } else {
-        for (let i = 0; i < snakeBody.length; i++) {
+        if (poisoned) {
 
-            let angle = 0
 
-            if (snakeBody[i][2] === "Right") angle = 0
-            if (snakeBody[i][2] === "Left") angle = Math.PI
-            if (snakeBody[i][2] === "Up") angle = -Math.PI / 2
-            if (snakeBody[i][2] === "Down") angle = Math.PI / 2
+            for (let i = snakeBody.length - 1; i >= poisonCount; i--) {
 
-            drawRotatedSegment(context, pacmanImg, snakeBody[i][0] * cellsize, snakeBody[i][1] * cellsize, cellsize, angle, pacmanFrame)
+                let angle = 0
+
+                if (snakeBody[i][2] === "Right") angle = 0
+                if (snakeBody[i][2] === "Left") angle = Math.PI
+                if (snakeBody[i][2] === "Up") angle = -Math.PI / 2
+                if (snakeBody[i][2] === "Down") angle = Math.PI / 2
+
+                if (strongTick < 20) {
+                    if (strongTick % 2 == 0) {
+                        drawRotatedSegment(context, pacmanStrongImg, snakeBody[i][0] * cellsize, snakeBody[i][1] * cellsize, cellsize, angle, pacmanFrame)
+                    }
+                    else {
+                        drawRotatedSegment(context, pacmanImg, snakeBody[i][0] * cellsize, snakeBody[i][1] * cellsize, cellsize, angle, pacmanFrame)
+                    }
+                } else {
+                    drawRotatedSegment(context, pacmanStrongImg, snakeBody[i][0] * cellsize, snakeBody[i][1] * cellsize, cellsize, angle, pacmanFrame)
+                }
+
+
+            }
+            drawPoisonedTail(context)
+
+        }
+        else {
+            for (let i = 0; i < snakeBody.length; i++) {
+
+                let angle = 0
+
+                if (snakeBody[i][2] === "Right") angle = 0
+                if (snakeBody[i][2] === "Left") angle = Math.PI
+                if (snakeBody[i][2] === "Up") angle = -Math.PI / 2
+                if (snakeBody[i][2] === "Down") angle = Math.PI / 2
+
+                if (strongTick < 20) {
+                    if (strongTick % 2 == 0) {
+                        drawRotatedSegment(context, pacmanStrongImg, snakeBody[i][0] * cellsize, snakeBody[i][1] * cellsize, cellsize, angle, pacmanFrame)
+                    }
+                    else {
+                        drawRotatedSegment(context, pacmanImg, snakeBody[i][0] * cellsize, snakeBody[i][1] * cellsize, cellsize, angle, pacmanFrame)
+                    }
+                }
+                else {
+                    drawRotatedSegment(context, pacmanStrongImg, snakeBody[i][0] * cellsize, snakeBody[i][1] * cellsize, cellsize, angle, pacmanFrame)
+                }
+            }
         }
     }
+
 }
 
 function drawPoisonedTail(context) {
@@ -299,6 +363,8 @@ function updateBoard(context) {
     context.fillStyle = "black"
     context.fillRect(0, 0, context.canvas.width, context.canvas.height)
 
+
+
     const poisonCount = (Math.floor((snakeBody.length) / 2) >= 1) ? Math.ceil((snakeBody.length) / 2) : 0
 
     if (gameOver) {
@@ -316,7 +382,8 @@ function updateBoard(context) {
             context.canvas.height / 2 + 40
         )
     } else {
-
+        const prevSnakeX = snakeX
+        const prevSnakeY = snakeY
         snakeX += speedX
         snakeY += speedY
 
@@ -345,20 +412,26 @@ function updateBoard(context) {
             }
         }
 
+        if (strongTick > 0) {
+            strongTick--
+        }
+        if (strongTick == 0) {
+            isPacmanStrong = false
+        }
+
         if (snakeX == foodX && snakeY == foodY) {
             newFoodPos()
             snakeLength += 1
+            isPacmanStrong = true
+            strongTick = STRONG_TICKS
             scoreElem.innerText = `Score: ${snakeLength - 1}`
             if (cakeExists == false) {
                 tryCakeAppear()
             }
         }
 
-        ghosts.forEach(g => {
-            if (snakeX == g.x && snakeY == g.y) {
-                gameOver = true
-            }
-        });
+
+
 
 
 
@@ -412,27 +485,25 @@ function updateBoard(context) {
                     changeGhostDirection(ghost)
                 }
 
-                if(ghosts.length==1)
-                {
-                    if ((ghosts[0].curDir == "Up" && ghosts[0].y == cakeY+2) ||
-                    (ghosts[0].curDir == "Down" && ghosts[0].y == cakeY-2) ||
-                    (ghosts[0].curDir == "Right" && ghosts[0].x == cakeX-2) ||
-                    (ghosts[0].curDir == "Left" && ghosts[0].x == cakeX+2)
+                if (ghosts.length == 1) {
+                    if ((ghosts[0].curDir == "Up" && ghosts[0].y == cakeY + 2) ||
+                        (ghosts[0].curDir == "Down" && ghosts[0].y == cakeY - 2) ||
+                        (ghosts[0].curDir == "Right" && ghosts[0].x == cakeX - 2) ||
+                        (ghosts[0].curDir == "Left" && ghosts[0].x == cakeX + 2)
                     )
-                    changeGhostDirection(ghost)
-                }else if (checkIfTheCakeCloseToTheGhost(ghost) && Math.random() <= ghostChanceToEatCake) {
+                        changeGhostDirection(ghost)
+                } else if (checkIfTheCakeCloseToTheGhost(ghost) && Math.random() <= ghostChanceToEatCake) {
                     ghostGonnaEatACake(ghost)
                 }
 
-                if(ghost.x == cakeX && ghost.y == cakeY)
-                {
+                if (ghost.x == cakeX && ghost.y == cakeY && ghosts.length > 1) {
                     ghostEatsACake(ghost)
                 }
 
                 if (ghost.x == foodX && ghost.y == foodY) {
                     newFoodPos()
                     if (Math.random() <= ghostChance) {
-                        
+
                         spawnGhost({ x: ghost.x, y: ghost.y })
                         ghostChance /= 2
                     }
@@ -446,9 +517,35 @@ function updateBoard(context) {
             }
             ghost.changeTick++
             drawGhost(context, ghost)
+
+            const prevGhostX = ghost.x
+            const prevGhostY = ghost.y
+
+            const pacmanHitsGhostFromSide =
+                snakeX === prevGhostX &&
+                snakeY === prevGhostY &&
+                !(ghost.x === prevSnakeX && ghost.y === prevSnakeY)
+
             ghost.x += ghost.ghostSpeedX
             ghost.y += ghost.ghostSpeedY
 
+
+            const crossed =
+                snakeX === prevGhostX &&
+                snakeY === prevGhostY &&
+                ghost.x === prevSnakeX &&
+                ghost.y === prevSnakeY
+
+
+            const sameCell = snakeX === ghost.x && snakeY === ghost.y
+
+            if (sameCell || crossed  || pacmanHitsGhostFromSide) {
+                if (!isPacmanStrong) {
+                    gameOver = true
+                } else {
+                    ghosts = ghosts.filter(g => g.id !== ghost.id)
+                }
+            }
         });
 
         drawFoodBox(context)
