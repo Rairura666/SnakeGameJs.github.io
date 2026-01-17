@@ -24,14 +24,12 @@ let snakeLength = 1
 let gameOver = false
 let foodX = null
 let foodY = null
-let cakeX = null
-let cakeY = null
-let cakeExists = false
+let cakes = []
 let scoreElem
 let snakeBody = []
 let curDirection = "Right"
-let cakeChance = 0.5
-let ghostChance = 0.2
+let cakeChance = 0.3
+let ghostChance = 0.4
 let ghostChanceToEatCake = 0.1
 let ghosts = []
 
@@ -61,16 +59,14 @@ function setNewGame() {
     snakeY = 5
     snakeLength = 1
     gameOver = false
-    foodX = null
-    foodY = null
     scoreElem
     snakeBody = []
+    cakes.length = 0
     ghosts.length = 0
     curDirection = "Right"
     poisonedTick = 0
     poisoned = false
-    cakeExists = false
-    ghostChance = 0.2
+    ghostChance = 0.4
     isPacmanStrong = false
     tryCakeAppear()
     spawnGhost(randomizeCell())
@@ -84,6 +80,17 @@ function setNewGame() {
     foodX = startFoodX
     foodY = startFoodY
 
+}
+
+function spawnCake() {
+    if (Math.random() >= cakeChance) return
+
+    const { x, y } = randomizeCell()
+
+    cakes.push({
+        id: crypto.randomUUID(),
+        x, y
+    })
 }
 
 function spawnGhost({ x, y }) {
@@ -140,24 +147,27 @@ function drawFoodBox(context) {
 }
 
 function newFoodPos() {
-    const { x, y } = randomizeCell()
-    while ((x == 0 && y == 0) || (x == cols - 1 && y == 0) || (x == 0 && y == rows - 1) || (x == cols - 1 && y == rows - 1)) {
-        x, y = randomizeCell()
-    }
+    let x,y
+     do {
+        const pos = randomizeCell()
+        x = pos.x
+        y = pos.y
+    } while ((x === 0 && y === 0) ||
+            (x === cols - 1 && y === 0) ||
+            (x === 0 && y === rows - 1) ||
+            (x === cols - 1 && y === rows - 1) || cakes.some(cake => cake.x === x && cake.y === y))
     foodX = x
     foodY = y
 }
 
-function newCakePos() {
-    const { x, y } = randomizeCell()
-    cakeX = x
-    cakeY = y
-}
 
-function drawCake(context) {
+function drawCake(context, cake) {
     context.drawImage(
         cakeImg,
-        cakeX * cellsize, cakeY * cellsize, cellsize, cellsize
+        cake.x * cellsize,
+        cake.y * cellsize,
+        cellsize,
+        cellsize
     )
 }
 
@@ -315,10 +325,7 @@ function checkIfTheFoodCloseToTheGhost(ghost) {
 }
 
 
-function checkIfTheCakeCloseToTheGhost(ghost) {
-    if ((Math.abs(ghost.x - cakeX) <= 3) && (Math.abs(ghost.y - cakeY) <= 3)) return true
-    return false
-}
+
 
 
 function changeGhostDirection(ghost) {
@@ -334,11 +341,11 @@ function changeGhostDirection(ghost) {
     }
 }
 
-function ghostGonnaEatACake(ghost) {
-    if (ghost.x > cakeX) giveGhostNewDir(ghost, "Left")
-    else if (ghost.x < cakeX) giveGhostNewDir(ghost, "Right")
-    else if (ghost.y > cakeY) giveGhostNewDir(ghost, "Up")
-    else if (ghost.y < cakeY) giveGhostNewDir(ghost, "Down")
+function ghostGonnaEatACake(ghost, cake) {
+    if (ghost.x > cake.x) giveGhostNewDir(ghost, "Left")
+    else if (ghost.x < cake.x) giveGhostNewDir(ghost, "Right")
+    else if (ghost.y > cake.y) giveGhostNewDir(ghost, "Up")
+    else if (ghost.y < cake.y) giveGhostNewDir(ghost, "Down")
 }
 
 function getAvailableDirs(ghost) {
@@ -352,10 +359,20 @@ function getAvailableDirs(ghost) {
     return dirs
 }
 
-function ghostEatsACake(ghost) {
-    cakeExists = false
-    cakeX = null
-    cakeY = null
+function getNearestCake(ghost) {
+    if (cakes.length === 0) return null
+
+    return cakes.reduce((best, cake) => {
+        const dist = Math.abs(cake.x - ghost.x) + Math.abs(cake.y - ghost.y)
+        if (!best || dist < best.dist) {
+            return { cake, dist }
+        }
+        return best
+    }, null)?.cake
+}
+
+function ghostEatsCake(ghost, cake) {
+    cakes = cakes.filter(c => c.id !== cake.id)
     ghosts = ghosts.filter(g => g.id !== ghost.id)
 }
 
@@ -425,27 +442,21 @@ function updateBoard(context) {
             isPacmanStrong = true
             strongTick = STRONG_TICKS
             scoreElem.innerText = `Score: ${snakeLength - 1}`
-            if (cakeExists == false) {
-                tryCakeAppear()
-            }
+            tryCakeAppear()
+
         }
 
 
+        const eatenCakeIndex = cakes.findIndex(
+            cake => cake.x === snakeX && cake.y === snakeY
+        )
 
-
-
-
-        if (snakeX == cakeX && snakeY == cakeY) {
+        if (eatenCakeIndex !== -1) {
             poisoned = true
             poisonedTick = 0
-
-            scoreElem.innerText = `Score: ${snakeLength - poisonCount -1}`
-
-            cakeExists = false
-            cakeX = null
-            cakeY = null
+            scoreElem.innerText = `Score: ${snakeLength - poisonCount - 1}`
+            cakes.splice(eatenCakeIndex, 1)
         }
-
 
         if (poisoned) {
             poisonedTick++
@@ -487,20 +498,29 @@ function updateBoard(context) {
                     changeGhostDirection(ghost)
                 }
 
-                if (ghosts.length == 1) {
-                    if ((ghosts[0].curDir == "Up" && ghosts[0].y == cakeY + 2) ||
-                        (ghosts[0].curDir == "Down" && ghosts[0].y == cakeY - 2) ||
-                        (ghosts[0].curDir == "Right" && ghosts[0].x == cakeX - 2) ||
-                        (ghosts[0].curDir == "Left" && ghosts[0].x == cakeX + 2)
-                    )
-                        changeGhostDirection(ghost)
-                } else if (checkIfTheCakeCloseToTheGhost(ghost) && Math.random() <= ghostChanceToEatCake) {
-                    ghostGonnaEatACake(ghost)
+
+                const nearestCake = getNearestCake(ghost)
+                if (nearestCake != null) {
+                    if (ghosts.length == 1) {
+                        if ((ghosts[0].curDir == "Up" && ghosts[0].y == nearestCake.y + 2) ||
+                            (ghosts[0].curDir == "Down" && ghosts[0].y == nearestCake.y - 2) ||
+                            (ghosts[0].curDir == "Right" && ghosts[0].x == nearestCake.x - 2) ||
+                            (ghosts[0].curDir == "Left" && ghosts[0].x == nearestCake.x + 2)
+                        )
+                            changeGhostDirection(ghost)
+                    } else if (nearestCake && Math.random() <= ghostChanceToEatCake) {
+                        ghostGonnaEatACake(ghost, nearestCake)
+                    }
+
+                    if (nearestCake && ghost.x === nearestCake.x && ghost.y === nearestCake.y) {
+                        if (ghosts.length > 1) {
+                            ghostEatsCake(ghost, nearestCake)
+                        }
+                    }
+
                 }
 
-                if (ghost.x == cakeX && ghost.y == cakeY && ghosts.length > 1) {
-                    ghostEatsACake(ghost)
-                }
+
 
                 if (ghost.x == foodX && ghost.y == foodY) {
                     newFoodPos()
@@ -554,17 +574,14 @@ function updateBoard(context) {
         drawSnake(context)
 
 
-        if (cakeX != null && cakeY != null) {
-            drawCake(context)
-        }
+        cakes.forEach(cake => drawCake(context, cake))
     }
 }
 
 
 function tryCakeAppear() {
     if (Math.random() < cakeChance) {
-        cakeExists = true
-        newCakePos()
+        spawnCake()
     }
 }
 
