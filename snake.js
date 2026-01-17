@@ -46,6 +46,8 @@ const POISONED_TICKS = 12
 const ghostMinChangeDirDelay = 3
 const ghostMaxChangeDirDelay = 20
 
+const ghostAppearChance = 0.1
+
 const cellsize = 25
 const rows = 20
 const cols = 20
@@ -147,15 +149,15 @@ function drawFoodBox(context) {
 }
 
 function newFoodPos() {
-    let x,y
-     do {
+    let x, y
+    do {
         const pos = randomizeCell()
         x = pos.x
         y = pos.y
     } while ((x === 0 && y === 0) ||
-            (x === cols - 1 && y === 0) ||
-            (x === 0 && y === rows - 1) ||
-            (x === cols - 1 && y === rows - 1) || cakes.some(cake => cake.x === x && cake.y === y))
+    (x === cols - 1 && y === 0) ||
+    (x === 0 && y === rows - 1) ||
+    (x === cols - 1 && y === rows - 1) || cakes.some(cake => cake.x === x && cake.y === y))
     foodX = x
     foodY = y
 }
@@ -565,10 +567,16 @@ function updateBoard(context) {
                 if (!isPacmanStrong) {
                     gameOver = true
                 } else {
+                    snakeLength += 5
+                    scoreElem.innerText = `Score: ${snakeLength - 1}`
                     ghosts = ghosts.filter(g => g.id !== ghost.id)
                 }
             }
         });
+
+        if (ghosts.length == 0) {
+            tryGhostAppear()
+        }
 
         drawFoodBox(context)
         drawSnake(context)
@@ -582,6 +590,12 @@ function updateBoard(context) {
 function tryCakeAppear() {
     if (Math.random() < cakeChance) {
         spawnCake()
+    }
+}
+
+function tryGhostAppear() {
+    if (Math.random() < ghostAppearChance) {
+        spawnGhost(randomizeCell())
     }
 }
 
