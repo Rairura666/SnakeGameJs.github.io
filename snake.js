@@ -586,7 +586,7 @@ function handlePressedKey(e) {
             speedX = 0
             speedY = -1
             curDirection = "Up"
-        } else gameOver = true
+        } 
 
     } else
         if (e.code == "ArrowDown") {
@@ -594,7 +594,7 @@ function handlePressedKey(e) {
                 speedX = 0
                 speedY = 1
                 curDirection = "Down"
-            } else gameOver = true
+            } 
 
         } else
             if (e.code == "ArrowLeft") {
@@ -602,7 +602,7 @@ function handlePressedKey(e) {
                     speedX = -1
                     speedY = 0
                     curDirection = "Left"
-                } else gameOver = true
+                } 
 
             } else
                 if (e.code == "ArrowRight") {
@@ -610,7 +610,7 @@ function handlePressedKey(e) {
                         speedX = 1
                         speedY = 0
                         curDirection = "Right"
-                    } else gameOver = true
+                    } 
 
                 }
 }
