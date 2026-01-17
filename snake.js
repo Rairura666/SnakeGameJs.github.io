@@ -636,14 +636,14 @@ function handlePressedKey(e) {
 
     if (gameOver) {
         if (Date.now() - gameOverStartTime < GAMEOVER_BLOCK_DURATION) {
-           return
+            return
         }
 
-         setNewGame()
-         return
+        setNewGame()
+        return
     }
 
-    if (e.code == "ArrowUp") {
+    if (e.code == "ArrowUp" || e.code === "KeyW") {
         if (speedY != 1) {
             speedX = 0
             speedY = -1
@@ -651,7 +651,7 @@ function handlePressedKey(e) {
         }
 
     } else
-        if (e.code == "ArrowDown") {
+        if (e.code == "ArrowDown" || e.code === "KeyS") {
             if (speedY != -1) {
                 speedX = 0
                 speedY = 1
@@ -659,7 +659,7 @@ function handlePressedKey(e) {
             }
 
         } else
-            if (e.code == "ArrowLeft") {
+            if (e.code == "ArrowLeft" ||e.code === "KeyA") {
                 if (speedX != 1) {
                     speedX = -1
                     speedY = 0
@@ -667,7 +667,7 @@ function handlePressedKey(e) {
                 }
 
             } else
-                if (e.code == "ArrowRight") {
+                if (e.code == "ArrowRight" || e.code === "KeyD") {
                     if (speedX != -1) {
                         speedX = 1
                         speedY = 0
