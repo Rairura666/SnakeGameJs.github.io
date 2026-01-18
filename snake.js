@@ -38,6 +38,8 @@ let scoreElem
 let maxScoreElem
 let snakeBody = []
 let curDirection = "Right"
+let nextDirection = "Right"
+let directionLocked = false
 let cakeChance = 0.5
 let ghostChance = 0.4
 let ghostChanceToEatCake = 0.1
@@ -355,10 +357,6 @@ function checkIfTheFoodCloseToTheGhost(ghost) {
     return false
 }
 
-
-
-
-
 function changeGhostDirection(ghost) {
     if (checkIfTheFoodCloseToTheGhost(ghost)) {
         if (ghost.x > foodX) giveGhostNewDir(ghost, "Left")
@@ -434,6 +432,28 @@ function updateBoard(context) {
         return
 
     } else {
+
+        curDirection = nextDirection
+
+        if (curDirection === "Up") {
+            speedX = 0
+            speedY = -1
+        }
+        if (curDirection === "Down") {
+            speedX = 0
+            speedY = 1
+        }
+        if (curDirection === "Left") {
+            speedX = -1
+            speedY = 0
+        }
+        if (curDirection === "Right") {
+            speedX = 1
+            speedY = 0
+        }
+
+        directionLocked = false
+
         const prevSnakeX = snakeX
         const prevSnakeY = snakeY
         snakeX += speedX
@@ -653,6 +673,15 @@ function randomizeCell() {
     return { x, y }
 }
 
+function isOpposite(a, b) {
+    return (
+        (a === "Up" && b === "Down") ||
+        (a === "Down" && b === "Up") ||
+        (a === "Left" && b === "Right") ||
+        (a === "Right" && b === "Left")
+    )
+}
+
 function handlePressedKey(e) {
 
     if (gameOver) {
@@ -663,39 +692,21 @@ function handlePressedKey(e) {
         setNewGame()
         return
     }
+    if (directionLocked) return
 
-    if (e.code == "ArrowUp" || e.code === "KeyW") {
-        if (speedY != 1) {
-            speedX = 0
-            speedY = -1
-            curDirection = "Up"
-        }
+    let newDir = null
 
-    } else
-        if (e.code == "ArrowDown" || e.code === "KeyS") {
-            if (speedY != -1) {
-                speedX = 0
-                speedY = 1
-                curDirection = "Down"
-            }
+    if (e.code === "ArrowUp" || e.code === "KeyW") newDir = "Up"
+    if (e.code === "ArrowDown" || e.code === "KeyS") newDir = "Down"
+    if (e.code === "ArrowLeft" || e.code === "KeyA") newDir = "Left"
+    if (e.code === "ArrowRight" || e.code === "KeyD") newDir = "Right"
 
-        } else
-            if (e.code == "ArrowLeft" || e.code === "KeyA") {
-                if (speedX != 1) {
-                    speedX = -1
-                    speedY = 0
-                    curDirection = "Left"
-                }
+    if (!newDir) return
 
-            } else
-                if (e.code == "ArrowRight" || e.code === "KeyD") {
-                    if (speedX != -1) {
-                        speedX = 1
-                        speedY = 0
-                        curDirection = "Right"
-                    }
+    if (isOpposite(curDirection, newDir)) return
 
-                }
+    nextDirection = newDir
+    directionLocked = true
 }
 
 window.onload = function () {
@@ -708,7 +719,7 @@ window.onload = function () {
     maxScoreElem = this.document.getElementById("maxScoreText")
     document.addEventListener("keydown", () => {
         if (!musicStarted) {
-            bgMusic.play();
+            bgMusic.play()
             musicStarted = true;
         }
     });
