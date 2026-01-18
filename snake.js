@@ -106,9 +106,17 @@ function setNewGame() {
 }
 
 function spawnCake() {
-    if (Math.random() >= cakeChance) return
+    let x, y
 
-    const { x, y } = randomizeCell()
+    do {
+        const pos = randomizeCell()
+        x = pos.x
+        y = pos.y
+    } while (
+        (x === foodX && y === foodY) ||
+        cakes.some(cake => cake.x === x && cake.y === y) ||
+        snakeBody.some(seg => seg[0] === x && seg[1] === y)
+    )
 
     cakes.push({
         id: crypto.randomUUID(),
