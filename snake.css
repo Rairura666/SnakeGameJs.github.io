@@ -24,16 +24,18 @@ body {
 
 #gameRow {
     display: flex;
-    align-items: flex-start; /* выравниваем по верхнему краю */
-    gap: 50px; /* расстояние между игрой и правилами */
+    align-items: flex-start;
+    gap: 50px;
     position: relative;
-    width: fit-content; /* подбирает ширину по содержимому */
+    width: fit-content;
+
 }
 
 #gameArea {
     display: flex;
     justify-content: center;
     position: relative;
+    flex-direction: column;
 }
 
 #board {
@@ -54,7 +56,8 @@ body {
     text-align: left;
     box-shadow: 0 0 10px #00FF00;
     position: absolute;
-    right: -400px; /* смещаем правила вправо от центра игры */
+    right: -400px;
+    /* смещаем правила вправо от центра игры */
 }
 
 #RulesTitle {
@@ -69,4 +72,67 @@ body {
     margin: 5px 0;
     font-size: 10px;
     text-shadow: 1px 1px 0 #000;
+}
+
+
+#soundBtn {
+    background: transparent;
+    border: 4px solid #00FF00;
+    color: #00FF00;
+    font-size: 10px;
+    cursor: pointer;
+    padding: 10px;
+    width: 100px;
+    box-shadow: 0 0 10px #00FF00;
+
+    margin-top: 20px;
+    font-family: 'Press Start 2P', monospace;
+    line-height: 1.5em;
+    letter-spacing: 1px;
+}
+
+#soundBtn:hover {
+    background: #00FF00;
+    color: black;
+}
+
+#soundBtn.muted {
+    color: #FF0000;
+    border-color: #FF0000;
+    box-shadow: 0 0 10px #FF0000;
+}
+
+
+#soundBtn.muted:hover {
+    background: #00FF00;
+    color: black;
+    border-color: #00FF00;
+}
+
+#restartBtn {
+    background: transparent;
+    border: 4px solid #00FF00;
+    color: #00FF00;
+    font-size: 10px;
+    cursor: pointer;
+    padding: 10px;
+    width: 100px;
+    box-shadow: 0 0 10px #00FF00;
+    margin-top: 20px;
+    font-family: 'Press Start 2P', monospace;
+    line-height: 1.5em;
+    letter-spacing: 1px;
+}
+
+#restartBtn:hover {
+    background: #00FF00;
+    color: black;
+}
+
+#gameBtns {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    gap: 100px;
+
 }

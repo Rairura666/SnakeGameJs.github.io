@@ -1,6 +1,7 @@
 const bgMusic = new Audio("Src/music.mp3");
-bgMusic.loop = true;
-bgMusic.volume = 0.4;
+bgMusic.loop = true
+bgMusic.volume = 0.4
+let isMuted = false
 
 const gameOverImg = new Image()
 gameOverImg.src = "Src/GameoverScreen.png"
@@ -24,7 +25,7 @@ cakeImg.src = "Src/cake.png"
 const ghostImg = new Image()
 ghostImg.src = "Src/ghost.png"
 
-let musicStarted = false;
+let musicStarted = false
 let speedX = 0
 let speedY = 0
 let snakeX
@@ -37,8 +38,8 @@ let cakes = []
 let scoreElem
 let maxScoreElem
 let snakeBody = []
-let curDirection = "Right"
-let nextDirection = "Right"
+let curDirection = null
+let nextDirection = null
 let directionLocked = false
 let cakeChance = 0.5
 let ghostChance = 0.4
@@ -83,11 +84,12 @@ function setNewGame() {
     snakeY = 5
     snakeLength = 1
     gameOver = false
-    scoreElem
     snakeBody = []
     cakes.length = 0
     ghosts.length = 0
-    curDirection = "Right"
+    curDirection = null
+    nextDirection = null
+    directionLocked = false
     poisonedTick = 0
     poisoned = false
     ghostChance = 0.4
@@ -433,7 +435,11 @@ function updateBoard(context) {
 
     } else {
 
-        curDirection = nextDirection
+        if(nextDirection!=null)
+        {
+                   curDirection = nextDirection
+        }
+ 
 
         if (curDirection === "Up") {
             speedX = 0
@@ -717,14 +723,29 @@ window.onload = function () {
     const context = boardElem.getContext("2d")
     scoreElem = this.document.getElementById("scoreText")
     maxScoreElem = this.document.getElementById("maxScoreText")
-    document.addEventListener("keydown", () => {
-        if (!musicStarted) {
-            bgMusic.play()
-            musicStarted = true;
-        }
-    });
-    setNewGame()
+    const restartBtn = this.document.getElementById("restartBtn")
+
+
 
     document.addEventListener("keyup", handlePressedKey)
+
+    const soundBtn = document.getElementById("soundBtn")
+    soundBtn.addEventListener("click", () => {
+        isMuted = !isMuted
+
+        bgMusic.muted = isMuted
+
+        soundBtn.classList.toggle("muted", isMuted)
+        soundBtn.innerText = isMuted ? "Unmute" : "Mute"
+    })
+    document.addEventListener("keydown", () => {
+        if (!musicStarted && !isMuted) {
+            bgMusic.play().catch(() => { })
+            musicStarted = true
+        }
+    })
+
+    setNewGame()
+
     this.setInterval(() => updateBoard(context), 1000 / 10)
 }
