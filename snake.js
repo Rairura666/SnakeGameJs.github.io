@@ -6,7 +6,6 @@ let isMuted = false
 const gameOverImg = new Image()
 gameOverImg.src = "Src/GameoverScreen.png"
 
-
 const pacmanImg = new Image()
 pacmanImg.src = "Src/pacman.png"
 
@@ -37,6 +36,7 @@ let foodY = null
 let cakes = []
 let scoreElem
 let maxScoreElem
+let chatchYourTailElem
 let snakeBody = []
 let curDirection = null
 let nextDirection = null
@@ -47,6 +47,10 @@ let ghostChanceToEatCake = 0.1
 let ghosts = []
 let maxScore = 0
 
+let achievementList
+let catchYourTail = false
+let previousTailX = 0
+let previousTailY = 0
 
 let isPacmanStrong = false
 let strongTick = 0
@@ -435,11 +439,10 @@ function updateBoard(context) {
 
     } else {
 
-        if(nextDirection!=null)
-        {
-                   curDirection = nextDirection
+        if (nextDirection != null) {
+            curDirection = nextDirection
         }
- 
+
 
         if (curDirection === "Up") {
             speedX = 0
@@ -465,6 +468,13 @@ function updateBoard(context) {
         snakeX += speedX
         snakeY += speedY
 
+        if ( catchYourTail === false && snakeBody.length>1 && snakeX === previousTailX && snakeY === previousTailY) {
+            catchYourTail = true
+            catchYourTailElem.classList.add("achDone")
+            achievementList.append(catchYourTailElem)
+        }
+
+
         if (snakeX < 0) {
             snakeX = cols - 1
         }
@@ -483,6 +493,9 @@ function updateBoard(context) {
         if (snakeBody.length > snakeLength) {
             snakeBody.shift()
         }
+
+        previousTailX = snakeBody[0][0]
+        previousTailY = snakeBody[0][1]
 
         for (let i = 0; i < snakeBody.length - 1; i++) {
             if (snakeX == snakeBody[i][0] && snakeY == snakeBody[i][1]) {
@@ -581,10 +594,7 @@ function updateBoard(context) {
                             ghostEatsCake(ghost, nearestCake)
                         }
                     }
-
                 }
-
-
 
                 if (ghost.x == foodX && ghost.y == foodY) {
                     newFoodPos()
@@ -593,8 +603,6 @@ function updateBoard(context) {
                         ghostChance /= 2
                     }
                 }
-
-
             }
 
             if (ghost.changeTick >= ghost.changeDelay) {
@@ -651,10 +659,10 @@ function updateBoard(context) {
         }
 
 
+
+
         drawFoodBox(context)
         drawSnake(context)
-
-
         cakes.forEach(cake => drawCake(context, cake))
     }
 }
@@ -721,9 +729,11 @@ window.onload = function () {
     boardElem.width = cellsize * cols
     boardElem.height = cellsize * rows
     const context = boardElem.getContext("2d")
-    scoreElem = this.document.getElementById("scoreText")
-    maxScoreElem = this.document.getElementById("maxScoreText")
-    const restartBtn = this.document.getElementById("restartBtn")
+    scoreElem = document.getElementById("scoreText")
+    maxScoreElem = document.getElementById("maxScoreText")
+
+    achievementList = document.getElementById("achievementList")
+    catchYourTailElem = document.getElementById("catchYourTail")
 
 
 
