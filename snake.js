@@ -64,7 +64,7 @@ let hungerCounter = 0
 const HUNGER_AMOUNT = 10
 
 let pacifist = false
-let pacifistCounter = 0
+let pacifistFailed = false
 const PACIFIST_AMOUNT = 20
 
 
@@ -115,8 +115,11 @@ function setNewGame() {
     ghostChance = 0.4
     isPacmanStrong = false
     gameOverStartTime = 0
+
     pacifistCounter = 0
     hungerCounter = 0
+    pacifistFailed = false
+
     tryCakeAppear()
     spawnGhost(randomizeCell())
 
@@ -535,7 +538,6 @@ function updateBoard(context) {
             snakeLength += 1
             isPacmanStrong = true
             hungerCounter += 1
-            pacifistCounter += 1
             strongTick = STRONG_TICKS
             if (poisoned)
                 scoreElem.innerText = `Score: ${snakeLength - poisonCount - 1}`
@@ -551,7 +553,6 @@ function updateBoard(context) {
         if (eatenCakeIndex !== -1) {
             poisoned = true
             poisonedTick = 0
-            pacifistCounter -= poisonCount
             scoreElem.innerText = `Score: ${snakeLength - poisonCount - 1}`
             cakes.splice(eatenCakeIndex, 1)
         }
@@ -660,7 +661,7 @@ function updateBoard(context) {
 
                 } else {
                     snakeLength += 5
-                    pacifistCounter = 0
+                    pacifistFailed = true
                     if (poisoned)
                         scoreElem.innerText = `Score: ${snakeLength - poisonCount - 1}`
                     else
@@ -685,7 +686,7 @@ function updateBoard(context) {
             completeAchievement(hungerElem)
         }
 
-        if (pacifistCounter >= PACIFIST_AMOUNT) {
+        if (snakeBody.length >= PACIFIST_AMOUNT && !pacifistFailed) {
             pacifist = true
             completeAchievement(pacifistElem)
         }
