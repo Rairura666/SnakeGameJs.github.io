@@ -37,6 +37,7 @@ let cakes = []
 let scoreElem
 let maxScoreElem
 
+let lastVolume = 0.4
 
 let snakeBody = []
 let curDirection = null
@@ -88,7 +89,7 @@ let gameoverFrameTick = 0
 const GAMEOVER_FRAMES = 6
 const GAMEOVER_DELAY = 5
 
-
+let volumeSlider
 
 const cellsize = 25
 const rows = 20
@@ -535,7 +536,7 @@ function updateBoard(context) {
             snakeLength += 1
             isPacmanStrong = true
             hungerCounter += 1
-            pacifistCounter +=1
+            pacifistCounter += 1
             strongTick = STRONG_TICKS
             if (poisoned)
                 scoreElem.innerText = `Score: ${snakeLength - poisonCount - 1}`
@@ -686,8 +687,7 @@ function updateBoard(context) {
             achievementList.append(hungerElem)
         }
 
-        if(pacifistCounter >= PACIFIST_AMOUNT)
-        {
+        if (pacifistCounter >= PACIFIST_AMOUNT) {
             pacifist = true
             pacifistElem.classList.add("achDone")
             achievementList.append(pacifistElem)
@@ -755,6 +755,12 @@ function handlePressedKey(e) {
     directionLocked = true
 }
 
+function updateSliderColor(value) {
+    volumeSlider.style.pointerEvents = bgMusic.muted ? "none" : "auto";
+    volumeSlider.style.opacity = bgMusic.muted ? "0.4" : "1";
+    volumeSlider.style.setProperty("--fill", `${value * 100}%`);
+}
+
 window.onload = function () {
 
     const boardElem = document.getElementById("board")
@@ -773,19 +779,46 @@ window.onload = function () {
     document.addEventListener("keyup", handlePressedKey)
 
     const soundBtn = document.getElementById("soundBtn")
-    soundBtn.addEventListener("click", () => {
-        isMuted = !isMuted
-
-        bgMusic.muted = isMuted
-
-        soundBtn.classList.toggle("muted", isMuted)
-        soundBtn.innerText = isMuted ? "Unmute" : "Mute"
-    })
     document.addEventListener("keydown", () => {
         if (!musicStarted && !isMuted) {
             bgMusic.play().catch(() => { })
             musicStarted = true
         }
+    })
+
+    volumeSlider = document.getElementById("volumeSlider")
+    volumeSlider.value = 0.4
+    updateSliderColor(volumeSlider.value)
+
+    soundBtn.addEventListener("click", () => {
+        if (!bgMusic.muted) {
+            bgMusic.muted = true
+            lastVolume = bgMusic.volume
+            updateSliderColor(volumeSlider.value)
+        } else {
+            bgMusic.muted = false
+            bgMusic.volume = lastVolume ?? 1
+            volumeSlider.value = bgMusic.volume
+            updateSliderColor(volumeSlider.value)
+
+        }
+
+        soundBtn.classList.toggle("muted", bgMusic.muted)
+        soundBtn.innerText = bgMusic.muted ? "Unmute" : "Mute"
+    });
+
+
+    volumeSlider.addEventListener("input", () => {
+        if (bgMusic.muted) {
+            bgMusic.muted = false
+            soundBtn.classList.toggle("muted", bgMusic.muted)
+            soundBtn.innerText = "Mute"
+        }
+
+        bgMusic.volume = volumeSlider.value
+        lastVolume = bgMusic.volume
+
+        updateSliderColor(volumeSlider.value)
     })
 
     setNewGame()
