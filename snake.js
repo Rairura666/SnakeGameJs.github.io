@@ -686,7 +686,7 @@ function updateBoard(context) {
             completeAchievement(hungerElem)
         }
 
-        if (snakeBody.length >= PACIFIST_AMOUNT && !pacifistFailed) {
+        if ((snakeBody.length-1) >= PACIFIST_AMOUNT && !pacifistFailed) {
             pacifist = true
             completeAchievement(pacifistElem)
         }
