@@ -37,6 +37,7 @@ let cakes = []
 let scoreElem
 let maxScoreElem
 
+
 let snakeBody = []
 let curDirection = null
 let nextDirection = null
