@@ -51,6 +51,7 @@ let maxScore = 0
 
 let catchYourTailElem
 let hungerElem
+let pacifistElem
 let achievementList
 
 let catchYourTail = false
@@ -60,6 +61,10 @@ let previousTailY = 0
 let hunger = false
 let hungerCounter = 0
 const HUNGER_AMOUNT = 10
+
+let pacifist = false
+let pacifistCounter = 0
+const PACIFIST_AMOUNT = 25
 
 
 let isPacmanStrong = false
@@ -109,6 +114,8 @@ function setNewGame() {
     ghostChance = 0.4
     isPacmanStrong = false
     gameOverStartTime = 0
+    pacifistCounter = 0
+    hungerCounter = 0
     tryCakeAppear()
     spawnGhost(randomizeCell())
 
@@ -528,6 +535,7 @@ function updateBoard(context) {
             snakeLength += 1
             isPacmanStrong = true
             hungerCounter += 1
+            pacifistCounter +=1
             strongTick = STRONG_TICKS
             if (poisoned)
                 scoreElem.innerText = `Score: ${snakeLength - poisonCount - 1}`
@@ -543,6 +551,7 @@ function updateBoard(context) {
         if (eatenCakeIndex !== -1) {
             poisoned = true
             poisonedTick = 0
+            pacifistCounter -= poisonCount
             scoreElem.innerText = `Score: ${snakeLength - poisonCount - 1}`
             cakes.splice(eatenCakeIndex, 1)
         }
@@ -651,6 +660,7 @@ function updateBoard(context) {
 
                 } else {
                     snakeLength += 5
+                    pacifistCounter = 0
                     if (poisoned)
                         scoreElem.innerText = `Score: ${snakeLength - poisonCount - 1}`
                     else
@@ -674,6 +684,13 @@ function updateBoard(context) {
             hunger = true
             hungerElem.classList.add("achDone")
             achievementList.append(hungerElem)
+        }
+
+        if(pacifistCounter >= PACIFIST_AMOUNT)
+        {
+            pacifist = true
+            pacifistElem.classList.add("achDone")
+            achievementList.append(pacifistElem)
         }
 
         drawFoodBox(context)
@@ -750,6 +767,7 @@ window.onload = function () {
     achievementList = document.getElementById("achievementList")
     catchYourTailElem = document.getElementById("catchYourTail")
     hungerElem = document.getElementById("hunger")
+    pacifistElem = document.getElementById("pacifist")
 
 
     document.addEventListener("keyup", handlePressedKey)
