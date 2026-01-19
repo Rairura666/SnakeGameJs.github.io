@@ -255,3 +255,25 @@ body {
     border-radius: 0;
     box-shadow: 0 0 4px #00FF00;
 }
+
+@keyframes achievementFlash {
+    0% {
+        border-color: #00FF00;
+        color: #00FF00;
+        box-shadow: 0 0 6px #00FF00;
+    }
+    50% {
+        border-color: #FF0000;
+        color: #FF0000;
+        box-shadow: 0 0 6px #FF0000;
+    }
+    100% {
+        border-color: #00FF00;
+        color: #00FF00;
+        box-shadow: 0 0 6px #00FF00;
+    }
+}
+
+.achFlash {
+    animation: achievementFlash 0.4s linear infinite;
+}

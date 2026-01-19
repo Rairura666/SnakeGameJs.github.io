@@ -65,7 +65,7 @@ const HUNGER_AMOUNT = 10
 
 let pacifist = false
 let pacifistCounter = 0
-const PACIFIST_AMOUNT = 25
+const PACIFIST_AMOUNT = 20
 
 
 let isPacmanStrong = false
@@ -488,8 +488,7 @@ function updateBoard(context) {
 
         if (catchYourTail === false && snakeBody.length > 1 && snakeX === previousTailX && snakeY === previousTailY) {
             catchYourTail = true
-            catchYourTailElem.classList.add("achDone")
-            achievementList.append(catchYourTailElem)
+            completeAchievement(catchYourTailElem)
         }
 
 
@@ -683,14 +682,12 @@ function updateBoard(context) {
 
         if (hungerCounter >= HUNGER_AMOUNT) {
             hunger = true
-            hungerElem.classList.add("achDone")
-            achievementList.append(hungerElem)
+            completeAchievement(hungerElem)
         }
 
         if (pacifistCounter >= PACIFIST_AMOUNT) {
             pacifist = true
-            pacifistElem.classList.add("achDone")
-            achievementList.append(pacifistElem)
+            completeAchievement(pacifistElem)
         }
 
         drawFoodBox(context)
@@ -756,9 +753,21 @@ function handlePressedKey(e) {
 }
 
 function updateSliderColor(value) {
-    volumeSlider.style.pointerEvents = bgMusic.muted ? "none" : "auto";
-    volumeSlider.style.opacity = bgMusic.muted ? "0.4" : "1";
-    volumeSlider.style.setProperty("--fill", `${value * 100}%`);
+    volumeSlider.style.pointerEvents = bgMusic.muted ? "none" : "auto"
+    volumeSlider.style.opacity = bgMusic.muted ? "0.4" : "1"
+    volumeSlider.style.setProperty("--fill", `${value * 100}%`)
+}
+
+function completeAchievement(elem) {
+    if (elem.classList.contains("achDone")) return
+
+    elem.classList.add("achFlash")
+
+    setTimeout(() => {
+        elem.classList.remove("achFlash")
+        elem.classList.add("achDone")
+        achievementList.append(elem)
+    }, 1000)
 }
 
 window.onload = function () {
