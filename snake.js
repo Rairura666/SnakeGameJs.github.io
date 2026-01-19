@@ -36,7 +36,7 @@ let foodY = null
 let cakes = []
 let scoreElem
 let maxScoreElem
-let chatchYourTailElem
+
 let snakeBody = []
 let curDirection = null
 let nextDirection = null
@@ -47,10 +47,19 @@ let ghostChanceToEatCake = 0.1
 let ghosts = []
 let maxScore = 0
 
+
+let catchYourTailElem
+let hungerElem
 let achievementList
+
 let catchYourTail = false
 let previousTailX = 0
 let previousTailY = 0
+
+let hunger = false
+let hungerCounter = 0
+const HUNGER_AMOUNT = 10
+
 
 let isPacmanStrong = false
 let strongTick = 0
@@ -468,7 +477,7 @@ function updateBoard(context) {
         snakeX += speedX
         snakeY += speedY
 
-        if ( catchYourTail === false && snakeBody.length>1 && snakeX === previousTailX && snakeY === previousTailY) {
+        if (catchYourTail === false && snakeBody.length > 1 && snakeX === previousTailX && snakeY === previousTailY) {
             catchYourTail = true
             catchYourTailElem.classList.add("achDone")
             achievementList.append(catchYourTailElem)
@@ -509,6 +518,7 @@ function updateBoard(context) {
         }
         if (strongTick == 0) {
             isPacmanStrong = false
+            hungerCounter = 0
         }
 
         if (snakeX == foodX && snakeY == foodY) {
@@ -516,6 +526,7 @@ function updateBoard(context) {
             newFoodPos()
             snakeLength += 1
             isPacmanStrong = true
+            hungerCounter += 1
             strongTick = STRONG_TICKS
             if (poisoned)
                 scoreElem.innerText = `Score: ${snakeLength - poisonCount - 1}`
@@ -658,8 +669,11 @@ function updateBoard(context) {
             maxScoreElem.innerText = `Max score: ${maxScore}`
         }
 
-
-
+        if (hungerCounter >= HUNGER_AMOUNT) {
+            hunger = true
+            hungerElem.classList.add("achDone")
+            achievementList.append(hungerElem)
+        }
 
         drawFoodBox(context)
         drawSnake(context)
@@ -734,7 +748,7 @@ window.onload = function () {
 
     achievementList = document.getElementById("achievementList")
     catchYourTailElem = document.getElementById("catchYourTail")
-
+    hungerElem = document.getElementById("hunger")
 
 
     document.addEventListener("keyup", handlePressedKey)
