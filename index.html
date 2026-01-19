@@ -10,13 +10,34 @@
 </head>
 
 <body>
-    <div id="topContainer">
-        <p id="scoreText">Score: 0</p>
-        <p id="maxScoreText">Max score: 0</p>
-    </div>
+
 
     <div id="gameRow">
+        <div class="side left">
+            <div id="achievements">
+                <h1 id="RulesTitle">Achievements</h1>
+                <div id="achievementList">
+                    <div class="achievement">
+                        <h2>Catch your tail</h2>
+                        <p>Snakeman's head enters the cell where its tail was a moment ago.</p>
+                    </div>
+                    <div class="achievement">
+                        <h2>Pacifist</h2>
+                        <p>Get 30 points without eating any ghost.</p>
+                    </div>
+                    <div class="achievement">
+                        <h2>Hunger</h2>
+                        <p>Eat 10 cherries in a row without loosing strong mode.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div id="gameArea">
+            <div id="topContainer">
+                <p id="scoreText">Score: 0</p>
+                <p id="maxScoreText">Max score: 0</p>
+            </div>
             <canvas id="board"></canvas>
             <div id="gameBtns">
                 <button id="restartBtn" onclick="setNewGame()">Restart</button>
@@ -24,18 +45,19 @@
             </div>
 
         </div>
-
-        <div id="Rules">
-            <h1 id="RulesTitle">Rules</h1>
-            <p>▶ Use arrows or WASD to move.</p>
-            <p>▶ Cherry adds 1 point.</p>
-            <p>▶ Cake is poisonous, cuts half of the snakeman.</p>
-            <p>▶ Ghosts eat cherries too.</p>
-            <p>▶ When a ghost eats a cherry there is a chance to spawn another ghost.</p>
-            <p>▶ There is some chance that a ghost will eat a cake and die.</p>
-            <p>▶ After eating a cherry the snakeman becomes strong and is able to eat ghosts for some time.</p>
-            <p>▶ Weak snakeman dies if tries to eat a ghost.</p>
-            <p>▶ An eated ghost adds 5 points.</p>
+        <div class="side right">
+            <div id="Rules">
+                <h1 id="RulesTitle">Rules</h1>
+                <p>▶ Use arrows or WASD to move.</p>
+                <p>▶ Cherry adds 1 point.</p>
+                <p>▶ Cake is poisonous, cuts half of the snakeman.</p>
+                <p>▶ Ghosts eat cherries too.</p>
+                <p>▶ When a ghost eats a cherry there is a chance to spawn another ghost.</p>
+                <p>▶ There is some chance that a ghost will eat a cake and die.</p>
+                <p>▶ After eating a cherry the snakeman becomes strong and is able to eat ghosts for some time.</p>
+                <p>▶ Weak snakeman dies if tries to eat a ghost.</p>
+                <p>▶ An eated ghost adds 5 points.</p>
+            </div>
         </div>
     </div>
 
