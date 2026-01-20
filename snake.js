@@ -65,7 +65,7 @@ const HUNGER_AMOUNT = 10
 
 let pacifist = false
 let pacifistFailed = false
-const PACIFIST_AMOUNT = 5
+const PACIFIST_AMOUNT = 20
 
 
 let isPacmanStrong = false
