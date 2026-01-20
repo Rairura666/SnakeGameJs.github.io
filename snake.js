@@ -79,6 +79,8 @@ let cakeSpawnProhibited = false
 let ghostSpawnProhibited = false
 const GHOSTS_BOSS_AMOUNT = 2
 let unlimitedPower = false
+let tailCuttingTick = 0
+const TAIL_CUTTING_DELAY = 35
 
 let isPacmanStrong = true
 let strongTick = 0
@@ -338,6 +340,16 @@ function drawSnake(context) {
 
             }
             drawPoisonedTail(context)
+            if (poisonedTick < POISONED_TICKS && isBossStage) {
+                let angle = 0
+
+                if (snakeBody[0][2] === "Right") angle = 0
+                if (snakeBody[0][2] === "Left") angle = Math.PI
+                if (snakeBody[0][2] === "Up") angle = -Math.PI / 2
+                if (snakeBody[0][2] === "Down") angle = Math.PI / 2
+
+                drawRotatedSegment(context, pacmanPoisonImg, snakeBody[0][0] * cellsize, snakeBody[0][1] * cellsize, cellsize, angle, pacmanFrame)
+            }
 
         }
         else {
@@ -361,6 +373,16 @@ function drawSnake(context) {
                 else {
                     drawRotatedSegment(context, pacmanStrongImg, snakeBody[i][0] * cellsize, snakeBody[i][1] * cellsize, cellsize, angle, pacmanFrame)
                 }
+            }
+            if (poisonedTick < POISONED_TICKS && isBossStage) {
+                let angle = 0
+
+                if (snakeBody[0][2] === "Right") angle = 0
+                if (snakeBody[0][2] === "Left") angle = Math.PI
+                if (snakeBody[0][2] === "Up") angle = -Math.PI / 2
+                if (snakeBody[0][2] === "Down") angle = Math.PI / 2
+
+                drawRotatedSegment(context, pacmanPoisonImg, snakeBody[0][0] * cellsize, snakeBody[0][1] * cellsize, cellsize, angle, pacmanFrame)
             }
         }
     }
@@ -484,6 +506,14 @@ function stopBossStage() {
     newFoodPos()
 }
 
+function cutTail() {
+    if (snakeBody.length >= 1) {
+        snakeBody.splice(0, 1)
+        snakeLength = snakeBody.length
+        scoreElem.innerText = snakeLength>=1 ? `Score: ${snakeLength - 1}` : "Score: 0"
+    }
+}
+
 function updateBoard(context) {
     context.fillStyle = "black"
     context.fillRect(0, 0, context.canvas.width, context.canvas.height)
@@ -512,7 +542,6 @@ function updateBoard(context) {
 
         if (isBossStage) {
 
-
             bossFrameTick++
             if (bossFrameTick >= BOSS_DELAY) {
                 bossFrame = (bossFrame + 1) % BOSS_FRAMES
@@ -526,9 +555,25 @@ function updateBoard(context) {
                 0, 0,
                 context.canvas.width, context.canvas.height
             )
+
+            tailCuttingTick++
+            if (tailCuttingTick >= TAIL_CUTTING_DELAY) {
+                poisonedTick = 0
+                tailCuttingTick = 0
+            }
+
+            if (poisonedTick < POISONED_TICKS) {
+                poisonedTick++
+                if (poisonedTick >= POISONED_TICKS) {
+                    cutTail()
+                }
+
+            }
+            if (snakeLength === 0) {
+                gameOver = true
+                gameOverStartTime = Date.now()
+            }
         }
-
-
 
 
         if (nextDirection != null) {
@@ -639,7 +684,7 @@ function updateBoard(context) {
         if (poisoned) {
             poisonedTick++
 
-            if (poisonedTick >= POISONED_TICKS) {
+            if (poisonedTick >= POISONED_TICKS && !isBossStage) {
                 poisoned = false
                 poisonedTick = 0
 
@@ -702,6 +747,7 @@ function updateBoard(context) {
                     if (Math.random() <= ghostChance) {
                         spawnGhost({ x: ghost.x, y: ghost.y })
                         if (ghosts.length >= GHOSTS_BOSS_AMOUNT) {
+                            
                             startBossStage()
                         }
                         ghostChance /= 2
