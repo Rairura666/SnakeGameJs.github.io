@@ -47,7 +47,7 @@ let cakeChance = 0.5
 let ghostChance = 0.4
 let ghostChanceToEatCake = 0.1
 let ghosts = []
-let maxScore =0 
+let maxScore = 0
 
 
 let catchYourTailElem
@@ -65,7 +65,7 @@ const HUNGER_AMOUNT = 10
 
 let pacifist = false
 let pacifistFailed = false
-const PACIFIST_AMOUNT = 20
+const PACIFIST_AMOUNT = 5
 
 
 let isPacmanStrong = false
@@ -118,7 +118,7 @@ function setNewGame() {
 
     hungerCounter = 0
     pacifistFailed = false
-
+    pacifistElem.classList.remove("failed")
     tryCakeAppear()
     spawnGhost(randomizeCell())
 
@@ -669,6 +669,7 @@ function updateBoard(context) {
                 } else {
                     snakeLength += 5
                     pacifistFailed = true
+                    failAchievement(pacifistElem)
                     if (poisoned)
                         scoreElem.innerText = `Score: ${snakeLength - poisonCount - 1}`
                     else
@@ -784,7 +785,7 @@ function updateSliderColor(value) {
 }
 
 function completeAchievement(elem) {
-     if (!elem || !achievementList) return
+    if (!elem || !achievementList) return
     if (elem.classList.contains("achDone")) return
 
     elem.classList.add("achFlash")
@@ -794,6 +795,13 @@ function completeAchievement(elem) {
         elem.classList.add("achDone")
         achievementList.append(elem)
     }, 1000)
+}
+
+function failAchievement(elem) {
+    if (!elem || !achievementList) return
+    if (elem.classList.contains("achDone")) return
+
+    elem.classList.add("failed")
 }
 
 window.onload = function () {
@@ -823,16 +831,25 @@ window.onload = function () {
         hunger = false
     }
 
-    
+
     achievementList = document.getElementById("achievementList")
     catchYourTailElem = document.getElementById("catchYourTail")
     hungerElem = document.getElementById("hunger")
     pacifistElem = document.getElementById("pacifist")
 
 
-    if (catchYourTail) catchYourTailElem.classList.add("achDone")
-    if (pacifist) pacifistElem.classList.add("achDone")
-    if (hunger) hungerElem.classList.add("achDone")
+    if (catchYourTail) {
+        catchYourTailElem.classList.add("achDone")
+        achievementList.append(catchYourTailElem)
+    }
+    if (pacifist) {
+        pacifistElem.classList.add("achDone")
+        achievementList.append(pacifistElem)
+    }
+    if (hunger) {
+        hungerElem.classList.add("achDone")
+        achievementList.append(hungerElem)
+    }
 
 
 
