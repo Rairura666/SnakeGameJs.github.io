@@ -46,9 +46,9 @@ let snakeBody = []
 let curDirection = null
 let nextDirection = null
 let directionLocked = false
-let cakeChance = 0.5
+let cakeChance = 0.3
 let ghostChance = 0.4
-let ghostChanceToEatCake = 0.1
+let ghostChanceToEatCake = 0.01
 let ghosts = []
 let maxScore = 0
 
@@ -83,7 +83,7 @@ let poisonedBossTick = 0
 let foodSpawnProhibited = false
 let cakeSpawnProhibited = false
 let ghostSpawnProhibited = false
-const GHOSTS_BOSS_AMOUNT = 3
+const GHOSTS_BOSS_AMOUNT = 4
 let unlimitedPower = false
 let tailCuttingTick = 0
 const TAIL_CUTTING_DELAY = 35
@@ -98,7 +98,7 @@ let poisonedTick = 0
 let poisoned = false
 const PACMAN_FRAMES = 6
 const PACMAN_DELAY = 1
-const POISONED_TICKS = 200
+const POISONED_TICKS = 12
 const ghostMinChangeDirDelay = 3
 const ghostMaxChangeDirDelay = 20
 
@@ -207,6 +207,7 @@ function spawnGhost({ x, y }) {
 
     const newGhost = {
         id: crypto.randomUUID(),
+        age: 0,
         x, y,
         curDir,
         ghostSpeedX, ghostSpeedY,
@@ -481,13 +482,21 @@ function getAvailableDirs(ghost) {
 function getNearestCake(ghost) {
     if (cakes.length === 0) return null
 
-    return cakes.reduce((best, cake) => {
-        const dist = Math.abs(cake.x - ghost.x) + Math.abs(cake.y - ghost.y)
-        if (!best || dist < best.dist) {
-            return { cake, dist }
+    let nearest = null
+    let minDist = Infinity
+
+    for (const cake of cakes) {
+        const dist =
+            Math.abs(cake.x - ghost.x) +
+            Math.abs(cake.y - ghost.y)
+
+        if (dist <= 2 && dist < minDist) {
+            minDist = dist
+            nearest = cake
         }
-        return best
-    }, null)?.cake
+    }
+
+    return nearest
 }
 
 function ghostEatsCake(ghost, cake) {
@@ -788,6 +797,7 @@ function updateBoard(context) {
 
         ghosts.forEach(ghost => {
 
+            ghost.age++
             if ((ghost.x <= 0 && ghost.y <= 0) ||
                 (ghost.x <= 0 && ghost.y >= rows - 1) ||
                 (ghost.x >= cols - 1 && ghost.y <= 0) ||
@@ -816,11 +826,11 @@ function updateBoard(context) {
                             (ghosts[0].curDir == "Left" && ghosts[0].x == nearestCake.x + 2)
                         )
                             changeGhostDirection(ghost)
-                    } else if (nearestCake && Math.random() <= ghostChanceToEatCake) {
+                    } else if (nearestCake && (Math.random() <= ghostChanceToEatCake)) {
                         ghostGonnaEatACake(ghost, nearestCake)
                     }
 
-                    if (nearestCake && ghost.x === nearestCake.x && ghost.y === nearestCake.y) {
+                    if (nearestCake && ghost.x === nearestCake.x && ghost.y === nearestCake.y && ghost.age > 10) {
                         if (ghosts.length > 1) {
                             ghostEatsCake(ghost, nearestCake)
                         }
