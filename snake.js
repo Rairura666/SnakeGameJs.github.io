@@ -78,6 +78,7 @@ let foodSpawnProhibited = false
 let cakeSpawnProhibited = false
 let ghostSpawnProhibited = false
 const GHOSTS_BOSS_AMOUNT = 2
+let unlimitedPower = false
 
 let isPacmanStrong = true
 let strongTick = 0
@@ -130,7 +131,8 @@ function setNewGame() {
     isBossStage = false
     foodSpawnProhibited = false
     cakeSpawnProhibited = false
-     ghostSpawnProhibited = false
+    ghostSpawnProhibited = false
+    unlimitedPower = false
 
     hungerCounter = 0
     pacifistFailed = false
@@ -279,7 +281,7 @@ function drawRotatedSegment(context, image, x, y, cellsize, angle, frame) {
 function drawSnake(context) {
     const poisonCount = (Math.floor((snakeBody.length) / 2) >= 1) ? Math.ceil((snakeBody.length) / 2) : 0
 
-    if (!isPacmanStrong) {
+    if (!isPacmanStrong && !unlimitedPower) {
         if (poisoned) {
 
             for (let i = snakeBody.length - 1; i >= poisonCount; i--) {
@@ -322,7 +324,7 @@ function drawSnake(context) {
                 if (snakeBody[i][2] === "Up") angle = -Math.PI / 2
                 if (snakeBody[i][2] === "Down") angle = Math.PI / 2
 
-                if (strongTick < 20) {
+                if (strongTick < 20 && !unlimitedPower) {
                     if (strongTick % 2 == 0) {
                         drawRotatedSegment(context, pacmanStrongImg, snakeBody[i][0] * cellsize, snakeBody[i][1] * cellsize, cellsize, angle, pacmanFrame)
                     }
@@ -348,7 +350,7 @@ function drawSnake(context) {
                 if (snakeBody[i][2] === "Up") angle = -Math.PI / 2
                 if (snakeBody[i][2] === "Down") angle = Math.PI / 2
 
-                if (strongTick < 20) {
+                if (strongTick < 20 && !unlimitedPower) {
                     if (strongTick % 2 == 0) {
                         drawRotatedSegment(context, pacmanStrongImg, snakeBody[i][0] * cellsize, snakeBody[i][1] * cellsize, cellsize, angle, pacmanFrame)
                     }
@@ -469,6 +471,7 @@ function startBossStage() {
     foodSpawnProhibited = true
     cakeSpawnProhibited = true
     ghostSpawnProhibited = true
+    unlimitedPower = true
     cakes.length = 0
     ghosts.length = 0
 }
