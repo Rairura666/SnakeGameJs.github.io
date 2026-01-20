@@ -150,9 +150,7 @@ function setNewGame() {
     pacifistElem.classList.remove("failed")
     tryCakeAppear()
     spawnGhost(randomizeCell())
-     spawnGhost(randomizeCell())
-      spawnGhost(randomizeCell())
-
+ 
     const { x: startSnakeX, y: startSnakeY } = randomizeCell()
     snakeX = startSnakeX
     snakeY = startSnakeY
