@@ -56,6 +56,7 @@ let maxScore = 0
 let catchYourTailElem
 let hungerElem
 let pacifistElem
+let ghostHunterElem
 let achievementList
 
 let catchYourTail = false
@@ -70,11 +71,15 @@ let pacifist = false
 let pacifistFailed = false
 const PACIFIST_AMOUNT = 20
 
+
+let ghostHunter = false
+
 let isBossStage = false
 let bossFrame = 0
 let bossFrameTick = 0
 const BOSS_FRAMES = 12
 const BOSS_DELAY = 5
+let poisonedBossTick = 0
 let foodSpawnProhibited = false
 let cakeSpawnProhibited = false
 let ghostSpawnProhibited = false
@@ -82,6 +87,7 @@ const GHOSTS_BOSS_AMOUNT = 2
 let unlimitedPower = false
 let tailCuttingTick = 0
 const TAIL_CUTTING_DELAY = 35
+const POISONED_BOSS_TICKS = 12
 
 let isPacmanStrong = true
 let strongTick = 0
@@ -92,7 +98,7 @@ let poisonedTick = 0
 let poisoned = false
 const PACMAN_FRAMES = 6
 const PACMAN_DELAY = 1
-const POISONED_TICKS = 12
+const POISONED_TICKS = 200
 const ghostMinChangeDirDelay = 3
 const ghostMaxChangeDirDelay = 20
 
@@ -136,8 +142,9 @@ function setNewGame() {
     cakeSpawnProhibited = false
     ghostSpawnProhibited = false
     unlimitedPower = false
+    poisonedBossTick = 0
     stopBossStage()
-    
+
     hungerCounter = 0
     pacifistFailed = false
     pacifistElem.classList.remove("failed")
@@ -342,7 +349,7 @@ function drawSnake(context) {
 
             }
             drawPoisonedTail(context)
-            if (poisonedTick < POISONED_TICKS && isBossStage) {
+            if (poisonedBossTick < POISONED_BOSS_TICKS && isBossStage) {
                 let angle = 0
 
                 if (snakeBody[0][2] === "Right") angle = 0
@@ -376,7 +383,7 @@ function drawSnake(context) {
                     drawRotatedSegment(context, pacmanStrongImg, snakeBody[i][0] * cellsize, snakeBody[i][1] * cellsize, cellsize, angle, pacmanFrame)
                 }
             }
-            if (poisonedTick < POISONED_TICKS && isBossStage) {
+            if (poisonedBossTick < POISONED_BOSS_TICKS && isBossStage) {
                 let angle = 0
 
                 if (snakeBody[0][2] === "Right") angle = 0
@@ -516,6 +523,27 @@ function startBossStage() {
             rule.style.color = "red"
         }
     })
+
+    if (!ghostHunter) {
+        const ach = document.createElement("div")
+        ach.className = "boss"
+        ach.id = "ghostHunter"
+
+        const h2 = document.createElement("h2")
+        h2.textContent = "Ghostbuster"
+        h2.color = "red"
+
+        const p = document.createElement("p")
+        p.textContent = "Eat them all."
+        p.color = "red"
+
+        ach.append(h2, p)
+
+        ghostHunterElem = ach
+
+        document.getElementById("achievementList").prepend(ghostHunterElem)
+    }
+
 }
 
 function stopBossStage() {
@@ -544,6 +572,12 @@ function stopBossStage() {
             rule.style.color = "#00FF00"
         }
     })
+
+    ghostHunterElem = document.getElementById("ghostHunter")
+    if (!ghostHunter && ghostHunterElem) {
+        ghostHunterElem.remove()
+    }
+
 }
 
 function cutTail() {
@@ -598,13 +632,24 @@ function updateBoard(context) {
 
             tailCuttingTick++
             if (tailCuttingTick >= TAIL_CUTTING_DELAY) {
-                poisonedTick = 0
+                poisonedBossTick = 0
                 tailCuttingTick = 0
             }
 
-            if (poisonedTick < POISONED_TICKS) {
+            if (poisoned) {
                 poisonedTick++
+
                 if (poisonedTick >= POISONED_TICKS) {
+                    poisoned = false
+                    poisonedTick = 0
+
+                    snakeBody.splice(0, poisonCount)
+                    snakeLength = snakeBody.length
+                }
+            }
+            if (poisonedBossTick < POISONED_BOSS_TICKS) {
+                poisonedBossTick++
+                if (poisonedBossTick >= POISONED_BOSS_TICKS) {
                     cutTail()
                 }
 
@@ -724,7 +769,7 @@ function updateBoard(context) {
         if (poisoned) {
             poisonedTick++
 
-            if (poisonedTick >= POISONED_TICKS && !isBossStage) {
+            if (poisonedTick >= POISONED_TICKS) {
                 poisoned = false
                 poisonedTick = 0
 
@@ -837,6 +882,9 @@ function updateBoard(context) {
                     ghosts = ghosts.filter(g => g.id !== ghost.id)
                     ghostChance *= 2
                     if (ghosts.length === 0 && isBossStage) {
+                        ghostHunter = true
+                        ghostHunterElem = document.getElementById("ghostHunter")
+                        completeAchievement(ghostHunterElem)
                         stopBossStage()
                     }
                 }
@@ -968,7 +1016,27 @@ function failAchievement(elem) {
 }
 
 window.onload = function () {
+    window.addEventListener(
+        "keydown",
+        (e) => {
+            const blockedKeys = [
+                "ArrowUp",
+                "ArrowDown",
+                "ArrowLeft",
+                "ArrowRight",
+                " ",
+                "PageUp",
+                "PageDown",
+                "Home",
+                "End"
+            ]
 
+            if (blockedKeys.includes(e.key)) {
+                e.preventDefault()
+            }
+        },
+        { passive: false }
+    )
     const boardElem = document.getElementById("board")
     boardElem.width = cellsize * cols
     boardElem.height = cellsize * rows

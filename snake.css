@@ -122,6 +122,21 @@ body {
 
 #achievements p {}
 
+
+.boss {
+    background: transparent;
+    border: 2px solid #FF0000;
+    color: #FF0000;
+    font-size: 10px;
+    padding: 15px;
+    margin: 10px 15px 10px 15px;
+    outline: none;
+    font-family: 'Press Start 2P', monospace;
+    line-height: 1.5em;
+    letter-spacing: 1px;
+
+}
+
 .achievement {
     background: transparent;
     border: 2px solid #00FF00;
@@ -135,6 +150,7 @@ body {
     letter-spacing: 1px;
 
 }
+
 
 .achDone {
     background: transparent;
