@@ -2,6 +2,8 @@ const bgMusic = new Audio("Src/music.mp3");
 bgMusic.loop = true
 bgMusic.volume = 0.4
 
+const bossImg = new Image()
+bossImg.src = "Src/boss.png"
 
 const gameOverImg = new Image()
 gameOverImg.src = "Src/GameoverScreen.png"
@@ -65,10 +67,19 @@ const HUNGER_AMOUNT = 10
 
 let pacifist = false
 let pacifistFailed = false
-const PACIFIST_AMOUNT = 5
+const PACIFIST_AMOUNT = 20
 
+let isBossStage = false
+let bossFrame = 0
+let bossFrameTick = 0
+const BOSS_FRAMES = 12
+const BOSS_DELAY = 5
+let foodSpawnProhibited = false
+let cakeSpawnProhibited = false
+let ghostSpawnProhibited = false
+const GHOSTS_BOSS_AMOUNT = 2
 
-let isPacmanStrong = false
+let isPacmanStrong = true
 let strongTick = 0
 const STRONG_TICKS = 50
 let pacmanFrame = 0
@@ -116,6 +127,11 @@ function setNewGame() {
     isPacmanStrong = false
     gameOverStartTime = 0
 
+    isBossStage = false
+    foodSpawnProhibited = false
+    cakeSpawnProhibited = false
+     ghostSpawnProhibited = false
+
     hungerCounter = 0
     pacifistFailed = false
     pacifistElem.classList.remove("failed")
@@ -141,7 +157,7 @@ function spawnCake() {
         x = pos.x
         y = pos.y
     } while (
-        (x === foodX && y === foodY) ||
+        (foodX != null && foodY != null && x === foodX && y === foodY) ||
         cakes.some(cake => cake.x === x && cake.y === y) ||
         snakeBody.some(seg => seg[0] === x && seg[1] === y)
     )
@@ -199,24 +215,34 @@ function drawGhost(context, ghost) {
 
 
 function drawFoodBox(context) {
-    context.drawImage(
-        foodImg,
-        foodX * cellsize, foodY * cellsize, cellsize, cellsize,
-    )
+    if (foodX != null && foodY != null) {
+        context.drawImage(
+            foodImg,
+            foodX * cellsize, foodY * cellsize, cellsize, cellsize,
+        )
+    }
+    else return
+
 }
 
 function newFoodPos() {
-    let x, y
-    do {
-        const pos = randomizeCell()
-        x = pos.x
-        y = pos.y
-    } while ((x === 0 && y === 0) ||
-    (x === cols - 1 && y === 0) ||
-    (x === 0 && y === rows - 1) ||
-    (x === cols - 1 && y === rows - 1) || cakes.some(cake => cake.x === x && cake.y === y))
-    foodX = x
-    foodY = y
+    if (!foodSpawnProhibited) {
+        let x, y
+        do {
+            const pos = randomizeCell()
+            x = pos.x
+            y = pos.y
+        } while ((x === 0 && y === 0) ||
+        (x === cols - 1 && y === 0) ||
+        (x === 0 && y === rows - 1) ||
+        (x === cols - 1 && y === rows - 1) || cakes.some(cake => cake.x === x && cake.y === y))
+        foodX = x
+        foodY = y
+    } else {
+        foodX = null
+        foodY = null
+    }
+
 }
 
 
@@ -379,16 +405,21 @@ function giveGhostNewDir(ghost, newDir) {
 }
 
 function checkIfTheFoodCloseToTheGhost(ghost) {
-    if ((Math.abs(ghost.x - foodX) <= 3) && (Math.abs(ghost.y - foodY) <= 3)) return true
+    if (foodX != null && foodY != null) {
+        if ((Math.abs(ghost.x - foodX) <= 3) && (Math.abs(ghost.y - foodY) <= 3)) return true
+    }
     return false
 }
 
 function changeGhostDirection(ghost) {
+
     if (checkIfTheFoodCloseToTheGhost(ghost)) {
-        if (ghost.x > foodX) giveGhostNewDir(ghost, "Left")
-        else if (ghost.x < foodX) giveGhostNewDir(ghost, "Right")
-        else if (ghost.y > foodY) giveGhostNewDir(ghost, "Up")
-        else if (ghost.y < foodY) giveGhostNewDir(ghost, "Down")
+        if (foodX != null && foodY != null) {
+            if (ghost.x > foodX) giveGhostNewDir(ghost, "Left")
+            else if (ghost.x < foodX) giveGhostNewDir(ghost, "Right")
+            else if (ghost.y > foodY) giveGhostNewDir(ghost, "Up")
+            else if (ghost.y < foodY) giveGhostNewDir(ghost, "Down")
+        }
     }
     else {
         const directions = ghost.availableDirs
@@ -431,11 +462,20 @@ function ghostEatsCake(ghost, cake) {
     ghosts = ghosts.filter(g => g.id !== ghost.id)
 }
 
+function startBossStage() {
+    foodX = null
+    foodY = null
+    isBossStage = true
+    foodSpawnProhibited = true
+    cakeSpawnProhibited = true
+    ghostSpawnProhibited = true
+    cakes.length = 0
+    ghosts.length = 0
+}
+
 function updateBoard(context) {
     context.fillStyle = "black"
     context.fillRect(0, 0, context.canvas.width, context.canvas.height)
-
-
 
     const poisonCount = (Math.floor((snakeBody.length) / 2) >= 1) ? Math.ceil((snakeBody.length) / 2) : 0
 
@@ -453,11 +493,32 @@ function updateBoard(context) {
             500, 500,
             0, 0,
             context.canvas.width, context.canvas.height
-        );
+        )
 
         return
 
     } else {
+
+        if (isBossStage) {
+
+
+            bossFrameTick++
+            if (bossFrameTick >= BOSS_DELAY) {
+                bossFrame = (bossFrame + 1) % BOSS_FRAMES
+                bossFrameTick = 0
+            }
+
+            context.drawImage(
+                bossImg,
+                bossFrame * 500, 0,
+                500, 500,
+                0, 0,
+                context.canvas.width, context.canvas.height
+            )
+        }
+
+
+
 
         if (nextDirection != null) {
             curDirection = nextDirection
@@ -539,7 +600,7 @@ function updateBoard(context) {
             hungerCounter = 0
         }
 
-        if (snakeX == foodX && snakeY == foodY) {
+        if (foodX != null && foodY != null && snakeX == foodX && snakeY == foodY) {
             tryCakeAppear()
             newFoodPos()
             snakeLength += 1
@@ -625,10 +686,13 @@ function updateBoard(context) {
                     }
                 }
 
-                if (ghost.x == foodX && ghost.y == foodY) {
+                if (foodX != null && foodY != null && ghost.x == foodX && ghost.y == foodY) {
                     newFoodPos()
                     if (Math.random() <= ghostChance) {
                         spawnGhost({ x: ghost.x, y: ghost.y })
+                        if (ghosts.length >= GHOSTS_BOSS_AMOUNT) {
+                            startBossStage()
+                        }
                         ghostChance /= 2
                     }
                 }
@@ -724,13 +788,13 @@ function updateBoard(context) {
 
 
 function tryCakeAppear() {
-    if (Math.random() < cakeChance) {
+    if (!cakeSpawnProhibited && Math.random() < cakeChance) {
         spawnCake()
     }
 }
 
 function tryGhostAppear() {
-    if (Math.random() < ghostChance) {
+    if (!ghostSpawnProhibited && Math.random() < ghostChance) {
         spawnGhost(randomizeCell())
     }
 }
