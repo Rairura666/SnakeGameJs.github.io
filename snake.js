@@ -38,6 +38,7 @@ let foodY = null
 let cakes = []
 let scoreElem
 let maxScoreElem
+let rulesElem
 
 let lastVolume
 
@@ -135,7 +136,8 @@ function setNewGame() {
     cakeSpawnProhibited = false
     ghostSpawnProhibited = false
     unlimitedPower = false
-
+    stopBossStage()
+    
     hungerCounter = 0
     pacifistFailed = false
     pacifistElem.classList.remove("failed")
@@ -495,6 +497,25 @@ function startBossStage() {
     ghostSpawnProhibited = true
     unlimitedPower = true
     cakes.length = 0
+
+    const newRules = [
+        "▶ Eat eat eat eat eat eat.",
+        "▶ Eat eat eat eat.",
+        "▶ Eat eat eat eat eat eat eat eat eat eat eat.",
+        "▶ Eat eat eat eat eat eat eat.",
+        "▶ Eat eat eat eat eat eat eat eat eat eat eat eat eat eat eat eat eat.",
+        "▶ Eat eat eat eat eat eat eat eat eat eat eat eat eat eat eat.",
+        "▶ Eat eat eat eat eat eat eat eat eat eat eat eat eat eat eat eat eat eat eat eat eat eat eat.",
+        "▶ Eat eat eat eat eat eat eat eat eat eat eat.",
+        "▶ Eat eat eat eat eat eat eat.",
+    ]
+
+    document.querySelectorAll("#Rules p").forEach((rule, i) => {
+        if (newRules[i]) {
+            rule.textContent = newRules[i]
+            rule.style.color = "red"
+        }
+    })
 }
 
 function stopBossStage() {
@@ -504,13 +525,32 @@ function stopBossStage() {
     ghostSpawnProhibited = false
     unlimitedPower = false
     newFoodPos()
+
+    const newRules = [
+        "▶ Use arrows or WASD to move.",
+        "▶ Cherry adds 1 point.",
+        "▶ Cake is poisonous, cuts half of the snakeman.",
+        "▶ Ghosts eat cherries too.",
+        "▶ When a ghost eats a cherry there is a chance to spawn another ghost.",
+        "▶ There is some chance that a ghost will eat a cake and die.",
+        "▶ After eating a cherry the snakeman becomes strong and is able to eat ghosts for some time.",
+        "▶ Weak snakeman dies if tries to eat a ghost.",
+        "▶ An eated ghost adds 5 points."
+    ]
+
+    document.querySelectorAll("#Rules p").forEach((rule, i) => {
+        if (newRules[i]) {
+            rule.textContent = newRules[i]
+            rule.style.color = "#00FF00"
+        }
+    })
 }
 
 function cutTail() {
     if (snakeBody.length >= 1) {
         snakeBody.splice(0, 1)
         snakeLength = snakeBody.length
-        scoreElem.innerText = snakeLength>=1 ? `Score: ${snakeLength - 1}` : "Score: 0"
+        scoreElem.innerText = snakeLength >= 1 ? `Score: ${snakeLength - 1}` : "Score: 0"
     }
 }
 
@@ -747,7 +787,7 @@ function updateBoard(context) {
                     if (Math.random() <= ghostChance) {
                         spawnGhost({ x: ghost.x, y: ghost.y })
                         if (ghosts.length >= GHOSTS_BOSS_AMOUNT) {
-                            
+
                             startBossStage()
                         }
                         ghostChance /= 2
@@ -940,6 +980,7 @@ window.onload = function () {
     maxScore = Number.isFinite(lastMaxScore) ? lastMaxScore : 0
     maxScoreElem.innerText = `Max score: ${maxScore}`
 
+    rulesElem = document.getElementById("Rules")
 
     try {
         const achievements = localStorage.getItem("achievements")
