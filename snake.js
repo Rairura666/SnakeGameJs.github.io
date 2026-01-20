@@ -150,6 +150,8 @@ function setNewGame() {
     pacifistElem.classList.remove("failed")
     tryCakeAppear()
     spawnGhost(randomizeCell())
+     spawnGhost(randomizeCell())
+      spawnGhost(randomizeCell())
 
     const { x: startSnakeX, y: startSnakeY } = randomizeCell()
     snakeX = startSnakeX
@@ -524,6 +526,7 @@ function startBossStage() {
         "▶ Eat eat eat eat eat eat eat eat eat eat eat eat eat eat eat eat eat eat eat eat eat eat eat.",
         "▶ Eat eat eat eat eat eat eat eat eat eat eat.",
         "▶ Eat eat eat eat eat eat eat.",
+        "▶ Eat eat eat eat eat eat.",
     ]
 
     document.querySelectorAll("#Rules p").forEach((rule, i) => {
@@ -572,13 +575,18 @@ function stopBossStage() {
         "▶ There is some chance that a ghost will eat a cake and die.",
         "▶ After eating a cherry the snakeman becomes strong and is able to eat ghosts for some time.",
         "▶ Weak snakeman dies if tries to eat a ghost.",
-        "▶ An eated ghost adds 5 points."
+        "▶ An eated ghost adds 5 points.",
+        "▶ Don't let 4 ghosts appear."
     ]
 
     document.querySelectorAll("#Rules p").forEach((rule, i) => {
         if (newRules[i]) {
             rule.textContent = newRules[i]
             rule.style.color = "#00FF00"
+            if(i==(newRules.length-1))
+            {
+                rule.style.color = "#FF0000"
+            }
         }
     })
 
