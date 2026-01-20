@@ -473,7 +473,15 @@ function startBossStage() {
     ghostSpawnProhibited = true
     unlimitedPower = true
     cakes.length = 0
-    ghosts.length = 0
+}
+
+function stopBossStage() {
+    isBossStage = false
+    foodSpawnProhibited = false
+    cakeSpawnProhibited = false
+    ghostSpawnProhibited = false
+    unlimitedPower = false
+    newFoodPos()
 }
 
 function updateBoard(context) {
@@ -725,11 +733,10 @@ function updateBoard(context) {
                 ghost.x === prevSnakeX &&
                 ghost.y === prevSnakeY
 
-
             const sameCell = snakeX === ghost.x && snakeY === ghost.y
 
             if (sameCell || crossed || pacmanHitsGhostFromSide) {
-                if (!isPacmanStrong) {
+                if (!isPacmanStrong && !unlimitedPower) {
                     gameOver = true
                     gameOverStartTime = Date.now()
 
@@ -743,11 +750,14 @@ function updateBoard(context) {
                         scoreElem.innerText = `Score: ${snakeLength - 1}`
                     ghosts = ghosts.filter(g => g.id !== ghost.id)
                     ghostChance *= 2
+                    if (ghosts.length === 0 && isBossStage) {
+                        stopBossStage()
+                    }
                 }
             }
         });
 
-        if (ghosts.length == 0) {
+        if (ghosts.length === 0 && !isBossStage) {
             tryGhostAppear()
         }
 
