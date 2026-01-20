@@ -2,6 +2,8 @@ const bgMusic = new Audio("Src/music.mp3");
 bgMusic.loop = true
 bgMusic.volume = 0.4
 
+const bossImg = new Image()
+bossImg.src = "Src/boss.png"
 
 const gameOverImg = new Image()
 gameOverImg.src = "Src/GameoverScreen.png"
@@ -36,6 +38,7 @@ let foodY = null
 let cakes = []
 let scoreElem
 let maxScoreElem
+let rulesElem
 
 let lastVolume
 
@@ -53,6 +56,7 @@ let maxScore = 0
 let catchYourTailElem
 let hungerElem
 let pacifistElem
+let ghostHunterElem
 let achievementList
 
 let catchYourTail = false
@@ -68,7 +72,24 @@ let pacifistFailed = false
 const PACIFIST_AMOUNT = 20
 
 
-let isPacmanStrong = false
+let ghostHunter = false
+
+let isBossStage = false
+let bossFrame = 0
+let bossFrameTick = 0
+const BOSS_FRAMES = 12
+const BOSS_DELAY = 5
+let poisonedBossTick = 0
+let foodSpawnProhibited = false
+let cakeSpawnProhibited = false
+let ghostSpawnProhibited = false
+const GHOSTS_BOSS_AMOUNT = 2
+let unlimitedPower = false
+let tailCuttingTick = 0
+const TAIL_CUTTING_DELAY = 35
+const POISONED_BOSS_TICKS = 12
+
+let isPacmanStrong = true
 let strongTick = 0
 const STRONG_TICKS = 50
 let pacmanFrame = 0
@@ -77,7 +98,7 @@ let poisonedTick = 0
 let poisoned = false
 const PACMAN_FRAMES = 6
 const PACMAN_DELAY = 1
-const POISONED_TICKS = 12
+const POISONED_TICKS = 200
 const ghostMinChangeDirDelay = 3
 const ghostMaxChangeDirDelay = 20
 
@@ -116,6 +137,14 @@ function setNewGame() {
     isPacmanStrong = false
     gameOverStartTime = 0
 
+    isBossStage = false
+    foodSpawnProhibited = false
+    cakeSpawnProhibited = false
+    ghostSpawnProhibited = false
+    unlimitedPower = false
+    poisonedBossTick = 0
+    stopBossStage()
+
     hungerCounter = 0
     pacifistFailed = false
     pacifistElem.classList.remove("failed")
@@ -141,7 +170,7 @@ function spawnCake() {
         x = pos.x
         y = pos.y
     } while (
-        (x === foodX && y === foodY) ||
+        (foodX != null && foodY != null && x === foodX && y === foodY) ||
         cakes.some(cake => cake.x === x && cake.y === y) ||
         snakeBody.some(seg => seg[0] === x && seg[1] === y)
     )
@@ -199,24 +228,34 @@ function drawGhost(context, ghost) {
 
 
 function drawFoodBox(context) {
-    context.drawImage(
-        foodImg,
-        foodX * cellsize, foodY * cellsize, cellsize, cellsize,
-    )
+    if (foodX != null && foodY != null) {
+        context.drawImage(
+            foodImg,
+            foodX * cellsize, foodY * cellsize, cellsize, cellsize,
+        )
+    }
+    else return
+
 }
 
 function newFoodPos() {
-    let x, y
-    do {
-        const pos = randomizeCell()
-        x = pos.x
-        y = pos.y
-    } while ((x === 0 && y === 0) ||
-    (x === cols - 1 && y === 0) ||
-    (x === 0 && y === rows - 1) ||
-    (x === cols - 1 && y === rows - 1) || cakes.some(cake => cake.x === x && cake.y === y))
-    foodX = x
-    foodY = y
+    if (!foodSpawnProhibited) {
+        let x, y
+        do {
+            const pos = randomizeCell()
+            x = pos.x
+            y = pos.y
+        } while ((x === 0 && y === 0) ||
+        (x === cols - 1 && y === 0) ||
+        (x === 0 && y === rows - 1) ||
+        (x === cols - 1 && y === rows - 1) || cakes.some(cake => cake.x === x && cake.y === y))
+        foodX = x
+        foodY = y
+    } else {
+        foodX = null
+        foodY = null
+    }
+
 }
 
 
@@ -253,7 +292,7 @@ function drawRotatedSegment(context, image, x, y, cellsize, angle, frame) {
 function drawSnake(context) {
     const poisonCount = (Math.floor((snakeBody.length) / 2) >= 1) ? Math.ceil((snakeBody.length) / 2) : 0
 
-    if (!isPacmanStrong) {
+    if (!isPacmanStrong && !unlimitedPower) {
         if (poisoned) {
 
             for (let i = snakeBody.length - 1; i >= poisonCount; i--) {
@@ -296,7 +335,7 @@ function drawSnake(context) {
                 if (snakeBody[i][2] === "Up") angle = -Math.PI / 2
                 if (snakeBody[i][2] === "Down") angle = Math.PI / 2
 
-                if (strongTick < 20) {
+                if (strongTick < 20 && !unlimitedPower) {
                     if (strongTick % 2 == 0) {
                         drawRotatedSegment(context, pacmanStrongImg, snakeBody[i][0] * cellsize, snakeBody[i][1] * cellsize, cellsize, angle, pacmanFrame)
                     }
@@ -310,6 +349,16 @@ function drawSnake(context) {
 
             }
             drawPoisonedTail(context)
+            if (poisonedBossTick < POISONED_BOSS_TICKS && isBossStage) {
+                let angle = 0
+
+                if (snakeBody[0][2] === "Right") angle = 0
+                if (snakeBody[0][2] === "Left") angle = Math.PI
+                if (snakeBody[0][2] === "Up") angle = -Math.PI / 2
+                if (snakeBody[0][2] === "Down") angle = Math.PI / 2
+
+                drawRotatedSegment(context, pacmanPoisonImg, snakeBody[0][0] * cellsize, snakeBody[0][1] * cellsize, cellsize, angle, pacmanFrame)
+            }
 
         }
         else {
@@ -322,7 +371,7 @@ function drawSnake(context) {
                 if (snakeBody[i][2] === "Up") angle = -Math.PI / 2
                 if (snakeBody[i][2] === "Down") angle = Math.PI / 2
 
-                if (strongTick < 20) {
+                if (strongTick < 20 && !unlimitedPower) {
                     if (strongTick % 2 == 0) {
                         drawRotatedSegment(context, pacmanStrongImg, snakeBody[i][0] * cellsize, snakeBody[i][1] * cellsize, cellsize, angle, pacmanFrame)
                     }
@@ -333,6 +382,16 @@ function drawSnake(context) {
                 else {
                     drawRotatedSegment(context, pacmanStrongImg, snakeBody[i][0] * cellsize, snakeBody[i][1] * cellsize, cellsize, angle, pacmanFrame)
                 }
+            }
+            if (poisonedBossTick < POISONED_BOSS_TICKS && isBossStage) {
+                let angle = 0
+
+                if (snakeBody[0][2] === "Right") angle = 0
+                if (snakeBody[0][2] === "Left") angle = Math.PI
+                if (snakeBody[0][2] === "Up") angle = -Math.PI / 2
+                if (snakeBody[0][2] === "Down") angle = Math.PI / 2
+
+                drawRotatedSegment(context, pacmanPoisonImg, snakeBody[0][0] * cellsize, snakeBody[0][1] * cellsize, cellsize, angle, pacmanFrame)
             }
         }
     }
@@ -379,16 +438,21 @@ function giveGhostNewDir(ghost, newDir) {
 }
 
 function checkIfTheFoodCloseToTheGhost(ghost) {
-    if ((Math.abs(ghost.x - foodX) <= 3) && (Math.abs(ghost.y - foodY) <= 3)) return true
+    if (foodX != null && foodY != null) {
+        if ((Math.abs(ghost.x - foodX) <= 3) && (Math.abs(ghost.y - foodY) <= 3)) return true
+    }
     return false
 }
 
 function changeGhostDirection(ghost) {
+
     if (checkIfTheFoodCloseToTheGhost(ghost)) {
-        if (ghost.x > foodX) giveGhostNewDir(ghost, "Left")
-        else if (ghost.x < foodX) giveGhostNewDir(ghost, "Right")
-        else if (ghost.y > foodY) giveGhostNewDir(ghost, "Up")
-        else if (ghost.y < foodY) giveGhostNewDir(ghost, "Down")
+        if (foodX != null && foodY != null) {
+            if (ghost.x > foodX) giveGhostNewDir(ghost, "Left")
+            else if (ghost.x < foodX) giveGhostNewDir(ghost, "Right")
+            else if (ghost.y > foodY) giveGhostNewDir(ghost, "Up")
+            else if (ghost.y < foodY) giveGhostNewDir(ghost, "Down")
+        }
     }
     else {
         const directions = ghost.availableDirs
@@ -431,11 +495,102 @@ function ghostEatsCake(ghost, cake) {
     ghosts = ghosts.filter(g => g.id !== ghost.id)
 }
 
+function startBossStage() {
+    foodX = null
+    foodY = null
+    isBossStage = true
+    foodSpawnProhibited = true
+    cakeSpawnProhibited = true
+    ghostSpawnProhibited = true
+    unlimitedPower = true
+    cakes.length = 0
+
+    const newRules = [
+        "▶ Eat eat eat eat eat eat.",
+        "▶ Eat eat eat eat.",
+        "▶ Eat eat eat eat eat eat eat eat eat eat eat.",
+        "▶ Eat eat eat eat eat eat eat.",
+        "▶ Eat eat eat eat eat eat eat eat eat eat eat eat eat eat eat eat eat.",
+        "▶ Eat eat eat eat eat eat eat eat eat eat eat eat eat eat eat.",
+        "▶ Eat eat eat eat eat eat eat eat eat eat eat eat eat eat eat eat eat eat eat eat eat eat eat.",
+        "▶ Eat eat eat eat eat eat eat eat eat eat eat.",
+        "▶ Eat eat eat eat eat eat eat.",
+    ]
+
+    document.querySelectorAll("#Rules p").forEach((rule, i) => {
+        if (newRules[i]) {
+            rule.textContent = newRules[i]
+            rule.style.color = "red"
+        }
+    })
+
+    if (!ghostHunter) {
+        const ach = document.createElement("div")
+        ach.className = "boss"
+        ach.id = "ghostHunter"
+
+        const h2 = document.createElement("h2")
+        h2.textContent = "Ghostbuster"
+        h2.color = "red"
+
+        const p = document.createElement("p")
+        p.textContent = "Eat them all."
+        p.color = "red"
+
+        ach.append(h2, p)
+
+        ghostHunterElem = ach
+
+        document.getElementById("achievementList").prepend(ghostHunterElem)
+    }
+
+}
+
+function stopBossStage() {
+    isBossStage = false
+    foodSpawnProhibited = false
+    cakeSpawnProhibited = false
+    ghostSpawnProhibited = false
+    unlimitedPower = false
+    newFoodPos()
+
+    const newRules = [
+        "▶ Use arrows or WASD to move.",
+        "▶ Cherry adds 1 point.",
+        "▶ Cake is poisonous, cuts half of the snakeman.",
+        "▶ Ghosts eat cherries too.",
+        "▶ When a ghost eats a cherry there is a chance to spawn another ghost.",
+        "▶ There is some chance that a ghost will eat a cake and die.",
+        "▶ After eating a cherry the snakeman becomes strong and is able to eat ghosts for some time.",
+        "▶ Weak snakeman dies if tries to eat a ghost.",
+        "▶ An eated ghost adds 5 points."
+    ]
+
+    document.querySelectorAll("#Rules p").forEach((rule, i) => {
+        if (newRules[i]) {
+            rule.textContent = newRules[i]
+            rule.style.color = "#00FF00"
+        }
+    })
+
+    ghostHunterElem = document.getElementById("ghostHunter")
+    if (!ghostHunter && ghostHunterElem) {
+        ghostHunterElem.remove()
+    }
+
+}
+
+function cutTail() {
+    if (snakeBody.length >= 1) {
+        snakeBody.splice(0, 1)
+        snakeLength = snakeBody.length
+        scoreElem.innerText = snakeLength >= 1 ? `Score: ${snakeLength - 1}` : "Score: 0"
+    }
+}
+
 function updateBoard(context) {
     context.fillStyle = "black"
     context.fillRect(0, 0, context.canvas.width, context.canvas.height)
-
-
 
     const poisonCount = (Math.floor((snakeBody.length) / 2) >= 1) ? Math.ceil((snakeBody.length) / 2) : 0
 
@@ -453,11 +608,58 @@ function updateBoard(context) {
             500, 500,
             0, 0,
             context.canvas.width, context.canvas.height
-        );
+        )
 
         return
 
     } else {
+
+        if (isBossStage) {
+
+            bossFrameTick++
+            if (bossFrameTick >= BOSS_DELAY) {
+                bossFrame = (bossFrame + 1) % BOSS_FRAMES
+                bossFrameTick = 0
+            }
+
+            context.drawImage(
+                bossImg,
+                bossFrame * 500, 0,
+                500, 500,
+                0, 0,
+                context.canvas.width, context.canvas.height
+            )
+
+            tailCuttingTick++
+            if (tailCuttingTick >= TAIL_CUTTING_DELAY) {
+                poisonedBossTick = 0
+                tailCuttingTick = 0
+            }
+
+            if (poisoned) {
+                poisonedTick++
+
+                if (poisonedTick >= POISONED_TICKS) {
+                    poisoned = false
+                    poisonedTick = 0
+
+                    snakeBody.splice(0, poisonCount)
+                    snakeLength = snakeBody.length
+                }
+            }
+            if (poisonedBossTick < POISONED_BOSS_TICKS) {
+                poisonedBossTick++
+                if (poisonedBossTick >= POISONED_BOSS_TICKS) {
+                    cutTail()
+                }
+
+            }
+            if (snakeLength === 0) {
+                gameOver = true
+                gameOverStartTime = Date.now()
+            }
+        }
+
 
         if (nextDirection != null) {
             curDirection = nextDirection
@@ -539,7 +741,7 @@ function updateBoard(context) {
             hungerCounter = 0
         }
 
-        if (snakeX == foodX && snakeY == foodY) {
+        if (foodX != null && foodY != null && snakeX == foodX && snakeY == foodY) {
             tryCakeAppear()
             newFoodPos()
             snakeLength += 1
@@ -625,10 +827,14 @@ function updateBoard(context) {
                     }
                 }
 
-                if (ghost.x == foodX && ghost.y == foodY) {
+                if (foodX != null && foodY != null && ghost.x == foodX && ghost.y == foodY) {
                     newFoodPos()
                     if (Math.random() <= ghostChance) {
                         spawnGhost({ x: ghost.x, y: ghost.y })
+                        if (ghosts.length >= GHOSTS_BOSS_AMOUNT) {
+
+                            startBossStage()
+                        }
                         ghostChance /= 2
                     }
                 }
@@ -658,11 +864,10 @@ function updateBoard(context) {
                 ghost.x === prevSnakeX &&
                 ghost.y === prevSnakeY
 
-
             const sameCell = snakeX === ghost.x && snakeY === ghost.y
 
             if (sameCell || crossed || pacmanHitsGhostFromSide) {
-                if (!isPacmanStrong) {
+                if (!isPacmanStrong && !unlimitedPower) {
                     gameOver = true
                     gameOverStartTime = Date.now()
 
@@ -676,11 +881,17 @@ function updateBoard(context) {
                         scoreElem.innerText = `Score: ${snakeLength - 1}`
                     ghosts = ghosts.filter(g => g.id !== ghost.id)
                     ghostChance *= 2
+                    if (ghosts.length === 0 && isBossStage) {
+                        ghostHunter = true
+                        ghostHunterElem = document.getElementById("ghostHunter")
+                        completeAchievement(ghostHunterElem)
+                        stopBossStage()
+                    }
                 }
             }
         });
 
-        if (ghosts.length == 0) {
+        if (ghosts.length === 0 && !isBossStage) {
             tryGhostAppear()
         }
 
@@ -724,13 +935,13 @@ function updateBoard(context) {
 
 
 function tryCakeAppear() {
-    if (Math.random() < cakeChance) {
+    if (!cakeSpawnProhibited && Math.random() < cakeChance) {
         spawnCake()
     }
 }
 
 function tryGhostAppear() {
-    if (Math.random() < ghostChance) {
+    if (!ghostSpawnProhibited && Math.random() < ghostChance) {
         spawnGhost(randomizeCell())
     }
 }
@@ -805,7 +1016,27 @@ function failAchievement(elem) {
 }
 
 window.onload = function () {
+    window.addEventListener(
+        "keydown",
+        (e) => {
+            const blockedKeys = [
+                "ArrowUp",
+                "ArrowDown",
+                "ArrowLeft",
+                "ArrowRight",
+                " ",
+                "PageUp",
+                "PageDown",
+                "Home",
+                "End"
+            ]
 
+            if (blockedKeys.includes(e.key)) {
+                e.preventDefault()
+            }
+        },
+        { passive: false }
+    )
     const boardElem = document.getElementById("board")
     boardElem.width = cellsize * cols
     boardElem.height = cellsize * rows
@@ -817,6 +1048,7 @@ window.onload = function () {
     maxScore = Number.isFinite(lastMaxScore) ? lastMaxScore : 0
     maxScoreElem.innerText = `Max score: ${maxScore}`
 
+    rulesElem = document.getElementById("Rules")
 
     try {
         const achievements = localStorage.getItem("achievements")
