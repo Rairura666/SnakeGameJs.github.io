@@ -1,7 +1,7 @@
 const bgMusic = new Audio("Src/music.mp3");
 bgMusic.loop = true
 bgMusic.volume = 0.4
-let isMuted = false
+
 
 const gameOverImg = new Image()
 gameOverImg.src = "Src/GameoverScreen.png"
@@ -37,7 +37,7 @@ let cakes = []
 let scoreElem
 let maxScoreElem
 
-let lastVolume = 0.4
+let lastVolume
 
 let snakeBody = []
 let curDirection = null
@@ -47,7 +47,7 @@ let cakeChance = 0.5
 let ghostChance = 0.4
 let ghostChanceToEatCake = 0.1
 let ghosts = []
-let maxScore = 0
+let maxScore =0 
 
 
 let catchYourTailElem
@@ -116,7 +116,6 @@ function setNewGame() {
     isPacmanStrong = false
     gameOverStartTime = 0
 
-    pacifistCounter = 0
     hungerCounter = 0
     pacifistFailed = false
 
@@ -492,6 +491,14 @@ function updateBoard(context) {
         if (catchYourTail === false && snakeBody.length > 1 && snakeX === previousTailX && snakeY === previousTailY) {
             catchYourTail = true
             completeAchievement(catchYourTailElem)
+            try {
+                const achRaw = localStorage.getItem("achievements")
+                const ach = achRaw ? JSON.parse(achRaw) : {}
+                ach.catchYourTail = true
+                localStorage.setItem("achievements", JSON.stringify(ach))
+            }
+            catch {
+            }
         }
 
 
@@ -679,16 +686,33 @@ function updateBoard(context) {
         if ((snakeLength - 1) > maxScore) {
             maxScore = snakeLength - 1
             maxScoreElem.innerText = `Max score: ${maxScore}`
+            localStorage.setItem("max_score", maxScore)
         }
 
         if (hungerCounter >= HUNGER_AMOUNT) {
             hunger = true
             completeAchievement(hungerElem)
+            try {
+                const achRaw = localStorage.getItem("achievements")
+                const ach = achRaw ? JSON.parse(achRaw) : {}
+                ach.hunger = true
+                localStorage.setItem("achievements", JSON.stringify(ach))
+            }
+            catch {
+            }
         }
 
-        if ((snakeBody.length-1) >= PACIFIST_AMOUNT && !pacifistFailed) {
+        if ((snakeBody.length - 1) >= PACIFIST_AMOUNT && !pacifistFailed && !pacifist) {
             pacifist = true
             completeAchievement(pacifistElem)
+            try {
+                const achRaw = localStorage.getItem("achievements")
+                const ach = achRaw ? JSON.parse(achRaw) : {}
+                ach.pacifist = true
+                localStorage.setItem("achievements", JSON.stringify(ach))
+            }
+            catch {
+            }
         }
 
         drawFoodBox(context)
@@ -760,6 +784,7 @@ function updateSliderColor(value) {
 }
 
 function completeAchievement(elem) {
+     if (!elem || !achievementList) return
     if (elem.classList.contains("achDone")) return
 
     elem.classList.add("achFlash")
@@ -780,55 +805,87 @@ window.onload = function () {
     scoreElem = document.getElementById("scoreText")
     maxScoreElem = document.getElementById("maxScoreText")
 
+    const lastMaxScore = Number(localStorage.getItem("max_score"))
+    maxScore = Number.isFinite(lastMaxScore) ? lastMaxScore : 0
+    maxScoreElem.innerText = `Max score: ${maxScore}`
+
+
+    try {
+        const achievements = localStorage.getItem("achievements")
+        achObj = JSON.parse(achievements) ?? {}
+        catchYourTail = achObj?.catchYourTail ?? false
+        pacifist = achObj?.pacifist ?? false
+        hunger = achObj?.hunger ?? false
+    }
+    catch {
+        catchYourTail = false
+        pacifist = false
+        hunger = false
+    }
+
+    
     achievementList = document.getElementById("achievementList")
     catchYourTailElem = document.getElementById("catchYourTail")
     hungerElem = document.getElementById("hunger")
     pacifistElem = document.getElementById("pacifist")
 
 
+    if (catchYourTail) catchYourTailElem.classList.add("achDone")
+    if (pacifist) pacifistElem.classList.add("achDone")
+    if (hunger) hungerElem.classList.add("achDone")
+
+
+
     document.addEventListener("keyup", handlePressedKey)
+
 
     const soundBtn = document.getElementById("soundBtn")
     document.addEventListener("keydown", () => {
-        if (!musicStarted && !isMuted) {
+        if (!musicStarted) {
             bgMusic.play().catch(() => { })
             musicStarted = true
         }
     })
+    const savedVolume = Number(localStorage.getItem("game_volume"))
+    lastVolume = Number.isFinite(savedVolume) ? savedVolume : 0.4
+    bgMusic.muted = localStorage.getItem("game_muted") === "true"
+    if (bgMusic.muted) {
+        soundBtn.classList.toggle("muted", bgMusic.muted)
+        soundBtn.innerText = bgMusic.muted ? "Unmute" : "Mute"
 
+    }
     volumeSlider = document.getElementById("volumeSlider")
-    volumeSlider.value = 0.4
+    volumeSlider.value = lastVolume
+    bgMusic.volume = volumeSlider.value
     updateSliderColor(volumeSlider.value)
 
     soundBtn.addEventListener("click", () => {
         if (!bgMusic.muted) {
             bgMusic.muted = true
             lastVolume = bgMusic.volume
-            updateSliderColor(volumeSlider.value)
         } else {
             bgMusic.muted = false
-            bgMusic.volume = lastVolume ?? 1
+            bgMusic.volume = lastVolume ?? localStorage.getItem("game_volume") ?? 1
             volumeSlider.value = bgMusic.volume
-            updateSliderColor(volumeSlider.value)
-
         }
+
+        updateSliderColor(volumeSlider.value)
 
         soundBtn.classList.toggle("muted", bgMusic.muted)
         soundBtn.innerText = bgMusic.muted ? "Unmute" : "Mute"
+
+        localStorage.setItem("game_muted", String(bgMusic.muted))
     });
 
 
-    volumeSlider.addEventListener("input", () => {
-        if (bgMusic.muted) {
-            bgMusic.muted = false
-            soundBtn.classList.toggle("muted", bgMusic.muted)
-            soundBtn.innerText = "Mute"
-        }
 
+    volumeSlider.addEventListener("input", () => {
         bgMusic.volume = volumeSlider.value
         lastVolume = bgMusic.volume
 
         updateSliderColor(volumeSlider.value)
+
+        localStorage.setItem("game_volume", String(lastVolume))
     })
 
     setNewGame()
