@@ -48,7 +48,7 @@ let nextDirection = null
 let directionLocked = false
 let cakeChance = 0.3
 let ghostChance = 0.4
-let ghostChanceToEatCake = 0.01
+let ghostChanceToEatCake = 0.25
 let ghosts = []
 let maxScore = 0
 
@@ -150,7 +150,7 @@ function setNewGame() {
     pacifistElem.classList.remove("failed")
     tryCakeAppear()
     spawnGhost(randomizeCell())
- 
+
     const { x: startSnakeX, y: startSnakeY } = randomizeCell()
     snakeX = startSnakeX
     snakeY = startSnakeY
@@ -581,8 +581,7 @@ function stopBossStage() {
         if (newRules[i]) {
             rule.textContent = newRules[i]
             rule.style.color = "#00FF00"
-            if(i==(newRules.length-1))
-            {
+            if (i == (newRules.length - 1)) {
                 rule.style.color = "#FF0000"
             }
         }
@@ -823,25 +822,28 @@ function updateBoard(context) {
                 }
 
 
-                // const nearestCake = getNearestCake(ghost)
-                // if (nearestCake != null) {
-                //     if (ghosts.length == 1) {
-                //         if ((ghosts[0].curDir == "Up" && ghosts[0].y == nearestCake.y + 2) ||
-                //             (ghosts[0].curDir == "Down" && ghosts[0].y == nearestCake.y - 2) ||
-                //             (ghosts[0].curDir == "Right" && ghosts[0].x == nearestCake.x - 2) ||
-                //             (ghosts[0].curDir == "Left" && ghosts[0].x == nearestCake.x + 2)
-                //         )
-                //             changeGhostDirection(ghost)
-                //     } else if (nearestCake && (Math.random() <= ghostChanceToEatCake)) {
-                //         ghostGonnaEatACake(ghost, nearestCake)
-                //     }
+                const nearestCake = getNearestCake(ghost)
+                let ghostTargetsCake = false
+                if (nearestCake != null) {
+                    if (ghosts.length == 1) {
+                        if ((ghosts[0].curDir == "Up" && ghosts[0].y == nearestCake.y + 2) ||
+                            (ghosts[0].curDir == "Down" && ghosts[0].y == nearestCake.y - 2) ||
+                            (ghosts[0].curDir == "Right" && ghosts[0].x == nearestCake.x - 2) ||
+                            (ghosts[0].curDir == "Left" && ghosts[0].x == nearestCake.x + 2)
+                        )
+                            changeGhostDirection(ghost)
+                    } else if (nearestCake && (Math.random() <= ghostChanceToEatCake)) {
+                        ghostGonnaEatACake(ghost, nearestCake)
+                        ghostTargetsCake = true
 
-                //     if (nearestCake && ghost.x === nearestCake.x && ghost.y === nearestCake.y && ghost.age > 10) {
-                //         if (ghosts.length > 1) {
-                //             ghostEatsCake(ghost, nearestCake)
-                //         }
-                //     }
-                // }
+                    }
+                    if (ghostTargetsCake && ghost.x === nearestCake.x && ghost.y === nearestCake.y && ghost.age > 10) {
+                        if (ghosts.length > 1) {
+                            ghostEatsCake(ghost, nearestCake)
+                        }
+                    }
+
+                }
 
                 if (foodX != null && foodY != null && ghost.x == foodX && ghost.y == foodY) {
                     newFoodPos()
