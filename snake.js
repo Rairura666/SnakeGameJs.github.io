@@ -5,6 +5,9 @@ bgMusic.volume = 0.4
 const bossImg = new Image()
 bossImg.src = "Src/boss.png"
 
+const pauseBossImg = new Image()
+pauseBossImg.src = "Src/pauseBoss.png"
+
 const gameOverImg = new Image()
 gameOverImg.src = "Src/GameoverScreen.png"
 
@@ -25,6 +28,10 @@ cakeImg.src = "Src/cake.png"
 
 const ghostImg = new Image()
 ghostImg.src = "Src/ghost.png"
+
+const ghostRedImg = new Image()
+ghostRedImg.src = "Src/ghostRed.png"
+
 
 let musicStarted = false
 let speedX = 0
@@ -88,6 +95,16 @@ let unlimitedPower = false
 let tailCuttingTick = 0
 const TAIL_CUTTING_DELAY = 35
 const POISONED_BOSS_TICKS = 12
+
+let pauseBeforeBoss = false
+let pauseBeforeBossTick = 0
+const PAUSE_BEFORE_BOSS_TICKS = 20
+const PAUSE_BOSS_FRAMES = 4
+const PAUSE_BOSS_DELAY = 5
+let pauseBossFrame = 0
+let pauseBossFrameTick = 0
+const BOSS_START_SAFE_TICKS = 10
+let bossStartTick = 0
 
 let isPacmanStrong = true
 let strongTick = 0
@@ -221,10 +238,26 @@ function spawnGhost({ x, y }) {
 }
 
 function drawGhost(context, ghost) {
-    context.drawImage(
-        ghostImg,
-        ghost.x * cellsize, ghost.y * cellsize, cellsize, cellsize,
-    )
+    if (pauseBeforeBoss) {
+        if (pauseBeforeBossTick % 2 == 0) {
+            context.drawImage(
+                ghostImg,
+                ghost.x * cellsize, ghost.y * cellsize, cellsize, cellsize,
+            )
+        }
+        else {
+            context.drawImage(
+                ghostRedImg,
+                ghost.x * cellsize, ghost.y * cellsize, cellsize, cellsize,
+            )
+        }
+    } else {
+        context.drawImage(
+            ghostImg,
+            ghost.x * cellsize, ghost.y * cellsize, cellsize, cellsize,
+        )
+    }
+
 }
 
 
@@ -293,110 +326,136 @@ function drawRotatedSegment(context, image, x, y, cellsize, angle, frame) {
 function drawSnake(context) {
     const poisonCount = (Math.floor((snakeBody.length) / 2) >= 1) ? Math.ceil((snakeBody.length) / 2) : 0
 
-    if (!isPacmanStrong && !unlimitedPower) {
-        if (poisoned) {
-
-            for (let i = snakeBody.length - 1; i >= poisonCount; i--) {
-
+    if (pauseBeforeBoss) {
+        for (let i = 0; i < snakeBody.length; i++) {
+            if (pauseBeforeBossTick < PAUSE_BEFORE_BOSS_TICKS) {
                 let angle = 0
 
                 if (snakeBody[i][2] === "Right") angle = 0
                 if (snakeBody[i][2] === "Left") angle = Math.PI
                 if (snakeBody[i][2] === "Up") angle = -Math.PI / 2
                 if (snakeBody[i][2] === "Down") angle = Math.PI / 2
-
-                drawRotatedSegment(context, pacmanImg, snakeBody[i][0] * cellsize, snakeBody[i][1] * cellsize, cellsize, angle, pacmanFrame)
-            }
-            drawPoisonedTail(context)
-
-        }
-        else {
-            for (let i = 0; i < snakeBody.length; i++) {
-
-                let angle = 0
-
-                if (snakeBody[i][2] === "Right") angle = 0
-                if (snakeBody[i][2] === "Left") angle = Math.PI
-                if (snakeBody[i][2] === "Up") angle = -Math.PI / 2
-                if (snakeBody[i][2] === "Down") angle = Math.PI / 2
-
-                drawRotatedSegment(context, pacmanImg, snakeBody[i][0] * cellsize, snakeBody[i][1] * cellsize, cellsize, angle, pacmanFrame)
+                if (pauseBeforeBossTick % 2 == 0) {
+                    drawRotatedSegment(context, pacmanStrongImg, snakeBody[i][0] * cellsize, snakeBody[i][1] * cellsize, cellsize, angle, pacmanFrame)
+                }
+                else {
+                    drawRotatedSegment(context, pacmanImg, snakeBody[i][0] * cellsize, snakeBody[i][1] * cellsize, cellsize, angle, pacmanFrame)
+                }
             }
         }
     } else {
-        if (poisoned) {
 
 
-            for (let i = snakeBody.length - 1; i >= poisonCount; i--) {
 
-                let angle = 0
+        if (!isPacmanStrong && !unlimitedPower) {
+            if (poisoned) {
 
-                if (snakeBody[i][2] === "Right") angle = 0
-                if (snakeBody[i][2] === "Left") angle = Math.PI
-                if (snakeBody[i][2] === "Up") angle = -Math.PI / 2
-                if (snakeBody[i][2] === "Down") angle = Math.PI / 2
+                for (let i = snakeBody.length - 1; i >= poisonCount; i--) {
 
-                if (strongTick < 20 && !unlimitedPower) {
-                    if (strongTick % 2 == 0) {
+                    let angle = 0
+
+                    if (snakeBody[i][2] === "Right") angle = 0
+                    if (snakeBody[i][2] === "Left") angle = Math.PI
+                    if (snakeBody[i][2] === "Up") angle = -Math.PI / 2
+                    if (snakeBody[i][2] === "Down") angle = Math.PI / 2
+
+                    drawRotatedSegment(context, pacmanImg, snakeBody[i][0] * cellsize, snakeBody[i][1] * cellsize, cellsize, angle, pacmanFrame)
+                }
+                drawPoisonedTail(context)
+
+            }
+            else {
+                for (let i = 0; i < snakeBody.length; i++) {
+
+                    let angle = 0
+
+                    if (snakeBody[i][2] === "Right") angle = 0
+                    if (snakeBody[i][2] === "Left") angle = Math.PI
+                    if (snakeBody[i][2] === "Up") angle = -Math.PI / 2
+                    if (snakeBody[i][2] === "Down") angle = Math.PI / 2
+
+                    drawRotatedSegment(context, pacmanImg, snakeBody[i][0] * cellsize, snakeBody[i][1] * cellsize, cellsize, angle, pacmanFrame)
+                }
+            }
+        } else {
+            if (poisoned) {
+
+
+                for (let i = snakeBody.length - 1; i >= poisonCount; i--) {
+
+                    let angle = 0
+
+                    if (snakeBody[i][2] === "Right") angle = 0
+                    if (snakeBody[i][2] === "Left") angle = Math.PI
+                    if (snakeBody[i][2] === "Up") angle = -Math.PI / 2
+                    if (snakeBody[i][2] === "Down") angle = Math.PI / 2
+
+                    if (strongTick < 20 && !unlimitedPower) {
+                        if (strongTick % 2 == 0) {
+                            drawRotatedSegment(context, pacmanStrongImg, snakeBody[i][0] * cellsize, snakeBody[i][1] * cellsize, cellsize, angle, pacmanFrame)
+                        }
+                        else {
+                            drawRotatedSegment(context, pacmanImg, snakeBody[i][0] * cellsize, snakeBody[i][1] * cellsize, cellsize, angle, pacmanFrame)
+                        }
+                    } else {
                         drawRotatedSegment(context, pacmanStrongImg, snakeBody[i][0] * cellsize, snakeBody[i][1] * cellsize, cellsize, angle, pacmanFrame)
                     }
-                    else {
-                        drawRotatedSegment(context, pacmanImg, snakeBody[i][0] * cellsize, snakeBody[i][1] * cellsize, cellsize, angle, pacmanFrame)
-                    }
-                } else {
-                    drawRotatedSegment(context, pacmanStrongImg, snakeBody[i][0] * cellsize, snakeBody[i][1] * cellsize, cellsize, angle, pacmanFrame)
+
+
+                }
+                drawPoisonedTail(context)
+                if (poisonedBossTick < POISONED_BOSS_TICKS && isBossStage) {
+                    let angle = 0
+
+                    if (snakeBody[0][2] === "Right") angle = 0
+                    if (snakeBody[0][2] === "Left") angle = Math.PI
+                    if (snakeBody[0][2] === "Up") angle = -Math.PI / 2
+                    if (snakeBody[0][2] === "Down") angle = Math.PI / 2
+
+                    drawRotatedSegment(context, pacmanPoisonImg, snakeBody[0][0] * cellsize, snakeBody[0][1] * cellsize, cellsize, angle, pacmanFrame)
                 }
 
-
             }
-            drawPoisonedTail(context)
-            if (poisonedBossTick < POISONED_BOSS_TICKS && isBossStage) {
-                let angle = 0
+            else {
+                for (let i = 0; i < snakeBody.length; i++) {
 
-                if (snakeBody[0][2] === "Right") angle = 0
-                if (snakeBody[0][2] === "Left") angle = Math.PI
-                if (snakeBody[0][2] === "Up") angle = -Math.PI / 2
-                if (snakeBody[0][2] === "Down") angle = Math.PI / 2
+                    let angle = 0
 
-                drawRotatedSegment(context, pacmanPoisonImg, snakeBody[0][0] * cellsize, snakeBody[0][1] * cellsize, cellsize, angle, pacmanFrame)
-            }
+                    if (snakeBody[i][2] === "Right") angle = 0
+                    if (snakeBody[i][2] === "Left") angle = Math.PI
+                    if (snakeBody[i][2] === "Up") angle = -Math.PI / 2
+                    if (snakeBody[i][2] === "Down") angle = Math.PI / 2
 
-        }
-        else {
-            for (let i = 0; i < snakeBody.length; i++) {
-
-                let angle = 0
-
-                if (snakeBody[i][2] === "Right") angle = 0
-                if (snakeBody[i][2] === "Left") angle = Math.PI
-                if (snakeBody[i][2] === "Up") angle = -Math.PI / 2
-                if (snakeBody[i][2] === "Down") angle = Math.PI / 2
-
-                if (strongTick < 20 && !unlimitedPower) {
-                    if (strongTick % 2 == 0) {
+                    if (strongTick < 20 && !unlimitedPower) {
+                        if (strongTick % 2 == 0) {
+                            drawRotatedSegment(context, pacmanStrongImg, snakeBody[i][0] * cellsize, snakeBody[i][1] * cellsize, cellsize, angle, pacmanFrame)
+                        }
+                        else {
+                            drawRotatedSegment(context, pacmanImg, snakeBody[i][0] * cellsize, snakeBody[i][1] * cellsize, cellsize, angle, pacmanFrame)
+                        }
+                    }
+                    else {
                         drawRotatedSegment(context, pacmanStrongImg, snakeBody[i][0] * cellsize, snakeBody[i][1] * cellsize, cellsize, angle, pacmanFrame)
                     }
-                    else {
-                        drawRotatedSegment(context, pacmanImg, snakeBody[i][0] * cellsize, snakeBody[i][1] * cellsize, cellsize, angle, pacmanFrame)
+                }
+                if (poisonedBossTick < POISONED_BOSS_TICKS && isBossStage) {
+                    let angle = 0
+
+                    if (snakeBody[0][2] === "Right") angle = 0
+                    if (snakeBody[0][2] === "Left") angle = Math.PI
+                    if (snakeBody[0][2] === "Up") angle = -Math.PI / 2
+                    if (snakeBody[0][2] === "Down") angle = Math.PI / 2
+                    if (poisonedBossTick > 0)
+                    {
+                        drawRotatedSegment(context, pacmanPoisonImg, snakeBody[0][0] * cellsize, snakeBody[0][1] * cellsize, cellsize, angle, pacmanFrame)
+                    }
+                    else{
+                        drawRotatedSegment(context, pacmanStrongImg, snakeBody[0][0] * cellsize, snakeBody[0][1] * cellsize, cellsize, angle, pacmanFrame)
                     }
                 }
-                else {
-                    drawRotatedSegment(context, pacmanStrongImg, snakeBody[i][0] * cellsize, snakeBody[i][1] * cellsize, cellsize, angle, pacmanFrame)
-                }
-            }
-            if (poisonedBossTick < POISONED_BOSS_TICKS && isBossStage) {
-                let angle = 0
-
-                if (snakeBody[0][2] === "Right") angle = 0
-                if (snakeBody[0][2] === "Left") angle = Math.PI
-                if (snakeBody[0][2] === "Up") angle = -Math.PI / 2
-                if (snakeBody[0][2] === "Down") angle = Math.PI / 2
-
-                drawRotatedSegment(context, pacmanPoisonImg, snakeBody[0][0] * cellsize, snakeBody[0][1] * cellsize, cellsize, angle, pacmanFrame)
             }
         }
     }
-
 }
 
 function drawPoisonedTail(context) {
@@ -507,6 +566,10 @@ function ghostEatsCake(ghost, cake) {
 function startBossStage() {
     foodX = null
     foodY = null
+
+    bossStartTick = 0
+    tailCuttingTick = 0
+
     isBossStage = true
     foodSpawnProhibited = true
     cakeSpawnProhibited = true
@@ -632,7 +695,32 @@ function updateBoard(context) {
 
         return
 
-    } else {
+    } else if (pauseBeforeBoss) {
+        pauseBossFrameTick++
+        if (pauseBossFrameTick >= PAUSE_BOSS_DELAY) {
+            pauseBossFrame = (pauseBossFrame + 1) % PAUSE_BOSS_FRAMES
+            pauseBossFrameTick = 0
+        }
+
+        context.drawImage(
+            pauseBossImg,
+            pauseBossFrame * 500, 0,
+            500, 500,
+            0, 0,
+            context.canvas.width, context.canvas.height
+        )
+        pauseBeforeBossTick++
+        drawFoodBox(context)
+        drawSnake(context)
+        ghosts.forEach(ghost => drawGhost(context, ghost))
+        cakes.forEach(cake => drawCake(context, cake))
+        if (pauseBeforeBossTick >= PAUSE_BEFORE_BOSS_TICKS) {
+            pauseBeforeBoss = false
+            pauseBeforeBossTick = 0
+            startBossStage()
+        }
+    }
+    else {
 
         if (isBossStage) {
 
@@ -650,11 +738,40 @@ function updateBoard(context) {
                 context.canvas.width, context.canvas.height
             )
 
-            tailCuttingTick++
-            if (tailCuttingTick >= TAIL_CUTTING_DELAY) {
-                poisonedBossTick = 0
-                tailCuttingTick = 0
+
+            // bossStartTick++
+            // if (bossStartTick > BOSS_START_SAFE_TICKS) {
+            //     tailCuttingTick++
+            //     if (tailCuttingTick >= TAIL_CUTTING_DELAY) {
+            //         poisonedBossTick = 0
+            //         tailCuttingTick = 0
+            //     }
+
+            // }
+
+            // if (poisonedBossTick < POISONED_BOSS_TICKS && bossStartTick > BOSS_START_SAFE_TICKS) {
+            //     poisonedBossTick++
+            //     if (poisonedBossTick >= POISONED_BOSS_TICKS) {
+            //         cutTail()
+            //     }
+            // }
+
+
+            bossStartTick++
+            if (bossStartTick > BOSS_START_SAFE_TICKS) {
+                tailCuttingTick++
+                if (tailCuttingTick >= TAIL_CUTTING_DELAY) {
+                    poisonedBossTick++
+                    if (poisonedBossTick >= POISONED_BOSS_TICKS) {
+                        cutTail()
+                        poisonedBossTick = 0
+                        tailCuttingTick = 0
+                    }
+                }
             }
+
+
+
 
             if (poisoned) {
                 poisonedTick++
@@ -667,13 +784,7 @@ function updateBoard(context) {
                     snakeLength = snakeBody.length
                 }
             }
-            if (poisonedBossTick < POISONED_BOSS_TICKS) {
-                poisonedBossTick++
-                if (poisonedBossTick >= POISONED_BOSS_TICKS) {
-                    cutTail()
-                }
 
-            }
             if (snakeLength === 0) {
                 gameOver = true
                 gameOverStartTime = Date.now()
@@ -856,9 +967,7 @@ function updateBoard(context) {
                     if (Math.random() <= ghostChance) {
                         spawnGhost({ x: ghost.x, y: ghost.y })
                         if (ghosts.length >= GHOSTS_BOSS_AMOUNT) {
-
-                            startBossStage()
-
+                            pauseBeforeBoss = true
                         }
                         ghostChance /= 2
                     }
