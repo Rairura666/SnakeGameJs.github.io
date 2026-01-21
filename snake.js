@@ -53,9 +53,9 @@ let snakeBody = []
 let curDirection = null
 let nextDirection = null
 let directionLocked = false
-let cakeChance = 0.3
+let cakeChance = 0.2
 let ghostChance = 0.4
-let ghostChanceToEatCake = 0.2
+let ghostChanceToEatCake = 0.15
 let ghosts = []
 let maxScore = 0
 
