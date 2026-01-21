@@ -48,7 +48,7 @@ let nextDirection = null
 let directionLocked = false
 let cakeChance = 0.3
 let ghostChance = 0.4
-let ghostChanceToEatCake = 0.25
+let ghostChanceToEatCake = 0.2
 let ghosts = []
 let maxScore = 0
 
@@ -246,10 +246,10 @@ function newFoodPos() {
             const pos = randomizeCell()
             x = pos.x
             y = pos.y
-        } while ((x === 0 && y === 0) ||
-        (x === cols - 1 && y === 0) ||
-        (x === 0 && y === rows - 1) ||
-        (x === cols - 1 && y === rows - 1) || cakes.some(cake => cake.x === x && cake.y === y))
+        } while ((x == 0 && y == 0) ||
+        (x == (cols - 1) && y == 0) ||
+        (x == 0 && y == (rows - 1)) ||
+        (x == (cols - 1) && y == (rows - 1)) || cakes.some(cake => cake.x == x && cake.y == y))
         foodX = x
         foodY = y
     } else {
