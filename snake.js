@@ -535,6 +535,9 @@ function startBossStage() {
     })
 
     if (!ghostHunter) {
+        catchYourTailElem.classList.add("hidden")
+        hungerElem.classList.add("hidden")
+        pacifistElem.classList.add("hidden")
         const ach = document.createElement("div")
         ach.className = "boss"
         ach.id = "ghostHunter"
@@ -562,6 +565,9 @@ function stopBossStage() {
     cakeSpawnProhibited = false
     ghostSpawnProhibited = false
     unlimitedPower = false
+    catchYourTailElem.classList.remove("hidden")
+    hungerElem.classList.remove("hidden")
+    pacifistElem.classList.remove("hidden")
     newFoodPos()
 
     const newRules = [
@@ -852,6 +858,7 @@ function updateBoard(context) {
                         if (ghosts.length >= GHOSTS_BOSS_AMOUNT) {
 
                             startBossStage()
+
                         }
                         ghostChance /= 2
                     }
@@ -903,7 +910,16 @@ function updateBoard(context) {
                         ghostHunter = true
                         ghostHunterElem = document.getElementById("ghostHunter")
                         completeAchievement(ghostHunterElem)
+                        try {
+                            const achRaw = localStorage.getItem("achievements")
+                            const ach = achRaw ? JSON.parse(achRaw) : {}
+                            ach.ghostHunter = true
+                            localStorage.setItem("achievements", JSON.stringify(ach))
+                        }
+                        catch {
+                        }
                         stopBossStage()
+
                     }
                 }
             }
@@ -1074,18 +1090,23 @@ window.onload = function () {
         catchYourTail = achObj?.catchYourTail ?? false
         pacifist = achObj?.pacifist ?? false
         hunger = achObj?.hunger ?? false
+        ghostHunter = achObj?.ghostHunter ?? false
     }
     catch {
         catchYourTail = false
         pacifist = false
         hunger = false
+        ghostHunter = false
     }
+
+
 
 
     achievementList = document.getElementById("achievementList")
     catchYourTailElem = document.getElementById("catchYourTail")
     hungerElem = document.getElementById("hunger")
     pacifistElem = document.getElementById("pacifist")
+
 
 
     if (catchYourTail) {
@@ -1100,7 +1121,22 @@ window.onload = function () {
         hungerElem.classList.add("achDone")
         achievementList.append(hungerElem)
     }
+    if (ghostHunter) {
+        ghostHunterElem = document.createElement("div")
+        ghostHunterElem.className = "boss"
+        ghostHunterElem.id = "ghostHunter"
 
+        const h2 = document.createElement("h2")
+        h2.textContent = "Ghostbuster"
+
+        const p = document.createElement("p")
+        p.textContent = "Eat them all."
+
+        ghostHunterElem.append(h2, p)
+
+        ghostHunterElem.classList.add("achDone")
+        achievementList.append(ghostHunterElem)
+    }
 
 
     document.addEventListener("keyup", handlePressedKey)
