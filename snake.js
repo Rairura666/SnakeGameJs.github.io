@@ -11,6 +11,9 @@ pauseBossImg.src = "Src/pauseBoss.png"
 const gameOverImg = new Image()
 gameOverImg.src = "Src/GameoverScreen.png"
 
+const startGameImg = new Image()
+startGameImg.src = "Src/startGameScreen.png"
+
 const pacmanImg = new Image()
 pacmanImg.src = "Src/pacman.png"
 
@@ -703,6 +706,16 @@ function updateBoard(context) {
     const poisonCount = (Math.floor((snakeBody.length) / 2) >= 1) ? Math.ceil((snakeBody.length) / 2) : 0
 
     if (!gameStarted) {
+
+            context.drawImage(
+                startGameImg,
+                0, 0,
+                500, 500,
+                0, 0,
+                context.canvas.width, context.canvas.height
+            )
+
+        
         pacmanFrameTick++
         if (pacmanFrameTick >= PACMAN_DELAY) {
             pacmanFrame = (pacmanFrame + 1) % PACMAN_FRAMES
@@ -1138,7 +1151,7 @@ function handlePressedKey(e) {
         }
 
         setNewGame()
-
+        startGame()
         return
     }
     if (directionLocked) return
