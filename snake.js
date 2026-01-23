@@ -1,39 +1,4 @@
-const bgMusic = new Audio("Src/music.mp3");
-bgMusic.loop = true
-bgMusic.volume = 0.4
-
-const bossImg = new Image()
-bossImg.src = "Src/boss.png"
-
-const pauseBossImg = new Image()
-pauseBossImg.src = "Src/pauseBoss.png"
-
-const gameOverImg = new Image()
-gameOverImg.src = "Src/GameoverScreen.png"
-
-const startGameImg = new Image()
-startGameImg.src = "Src/startGameScreen.png"
-
-const pacmanImg = new Image()
-pacmanImg.src = "Src/pacman.png"
-
-const pacmanPoisonImg = new Image()
-pacmanPoisonImg.src = "Src/pacmanPoison.png"
-
-const pacmanStrongImg = new Image()
-pacmanStrongImg.src = "Src/pacmanStrong.png"
-
-const foodImg = new Image()
-foodImg.src = "Src/cherry.png"
-
-const cakeImg = new Image()
-cakeImg.src = "Src/cake.png"
-
-const ghostImg = new Image()
-ghostImg.src = "Src/ghost.png"
-
-const ghostRedImg = new Image()
-ghostRedImg.src = "Src/ghostRed.png"
+import * as C from "./Src/Constants.js";
 
 
 let musicStarted = false
@@ -75,11 +40,11 @@ let previousTailY = 0
 
 let hunger = false
 let hungerCounter = 0
-const HUNGER_AMOUNT = 10
+
 
 let pacifist = false
 let pacifistFailed = false
-const PACIFIST_AMOUNT = 20
+
 
 
 let ghostHunter = false
@@ -87,60 +52,48 @@ let ghostHunter = false
 let isBossStage = false
 let bossFrame = 0
 let bossFrameTick = 0
-const BOSS_FRAMES = 12
-const BOSS_DELAY = 5
+
 let poisonedBossTick = 0
 let foodSpawnProhibited = false
 let cakeSpawnProhibited = false
 let ghostSpawnProhibited = false
-const GHOSTS_BOSS_AMOUNT = 4
+
 let unlimitedPower = false
 let tailCuttingTick = 0
-const TAIL_CUTTING_DELAY = 35
-const POISONED_BOSS_TICKS = 12
+
 
 let pauseBeforeBoss = false
 let pauseBeforeBossTick = 0
-const PAUSE_BEFORE_BOSS_TICKS = 20
-const PAUSE_BOSS_FRAMES = 4
-const PAUSE_BOSS_DELAY = 5
+
 let pauseBossFrame = 0
 let pauseBossFrameTick = 0
-const BOSS_START_SAFE_TICKS = 10
+
 let bossStartTick = 0
 
 let isPacmanStrong = true
 let strongTick = 0
-const STRONG_TICKS = 50
+
 let pacmanFrame = 0
 let pacmanFrameTick = 0
 let poisonedTick = 0
 let poisoned = false
-const PACMAN_FRAMES = 6
-const PACMAN_DELAY = 1
-const POISONED_TICKS = 12
-const ghostMinChangeDirDelay = 3
-const ghostMaxChangeDirDelay = 20
+
 
 let gameOverStartTime = 0
-const GAMEOVER_BLOCK_DURATION = 1000
+
 
 let gameoverFrame = 0
 let gameoverFrameTick = 0
-const GAMEOVER_FRAMES = 6
-const GAMEOVER_DELAY = 5
+
 
 let volumeSlider
 
-const cellsize = 25
-const rows = 20
-const cols = 20
 
 let gameStarted = false
 
 function setNewGame() {
     gameStarted = false
-    scoreElem = this.document.getElementById("scoreText")
+    scoreElem = document.getElementById("scoreText")
     scoreElem.innerText = "Score: 0"
     speedX = 0
     speedY = 0
@@ -221,7 +174,7 @@ function spawnGhost({ x, y }) {
         curDir,
         ghostSpeedX: 0, ghostSpeedY: 0,
         changeTick: 0,
-        changeDelay: Math.floor(Math.random() * (ghostMaxChangeDirDelay - ghostMinChangeDirDelay + 1)) + ghostMinChangeDirDelay,
+        changeDelay: Math.floor(Math.random() * (C.ghostMaxChangeDirDelay - C.ghostMinChangeDirDelay + 1)) + C.ghostMinChangeDirDelay,
 
     }
 
@@ -256,20 +209,20 @@ function drawGhost(context, ghost) {
     if (pauseBeforeBoss) {
         if (pauseBeforeBossTick % 2 == 0) {
             context.drawImage(
-                ghostImg,
-                ghost.x * cellsize, ghost.y * cellsize, cellsize, cellsize,
+                C.ghostImg,
+                ghost.x * C.CELLSIZE, ghost.y * C.CELLSIZE, C.CELLSIZE, C.CELLSIZE,
             )
         }
         else {
             context.drawImage(
-                ghostRedImg,
-                ghost.x * cellsize, ghost.y * cellsize, cellsize, cellsize,
+                C.ghostRedImg,
+                ghost.x * C.CELLSIZE, ghost.y * C.CELLSIZE, C.CELLSIZE, C.CELLSIZE,
             )
         }
     } else {
         context.drawImage(
-            ghostImg,
-            ghost.x * cellsize, ghost.y * cellsize, cellsize, cellsize,
+            C.ghostImg,
+            ghost.x * C.CELLSIZE, ghost.y * C.CELLSIZE, C.CELLSIZE, C.CELLSIZE,
         )
     }
 
@@ -279,8 +232,8 @@ function drawGhost(context, ghost) {
 function drawFoodBox(context) {
     if (foodX != null && foodY != null) {
         context.drawImage(
-            foodImg,
-            foodX * cellsize, foodY * cellsize, cellsize, cellsize,
+            C.foodImg,
+            foodX * C.CELLSIZE, foodY * C.CELLSIZE, C.CELLSIZE, C.CELLSIZE,
         )
     }
     else return
@@ -295,9 +248,9 @@ function newFoodPos() {
             x = pos.x
             y = pos.y
         } while ((x == 0 && y == 0) ||
-        (x == (cols - 1) && y == 0) ||
-        (x == 0 && y == (rows - 1)) ||
-        (x == (cols - 1) && y == (rows - 1)) || cakes.some(cake => cake.x == x && cake.y == y))
+        (x == (C.COLS - 1) && y == 0) ||
+        (x == 0 && y == (C.ROWS - 1)) ||
+        (x == (C.COLS - 1) && y == (C.ROWS - 1)) || cakes.some(cake => cake.x == x && cake.y == y))
         foodX = x
         foodY = y
     } else {
@@ -310,11 +263,11 @@ function newFoodPos() {
 
 function drawCake(context, cake) {
     context.drawImage(
-        cakeImg,
-        cake.x * cellsize,
-        cake.y * cellsize,
-        cellsize,
-        cellsize
+        C.cakeImg,
+        cake.x * C.CELLSIZE,
+        cake.y * C.CELLSIZE,
+        C.CELLSIZE,
+        C.CELLSIZE
     )
 }
 
@@ -350,13 +303,13 @@ function drawSnake(context) {
         if (snakeBody[0][2] === "Up") angle = -Math.PI / 2
         if (snakeBody[0][2] === "Down") angle = Math.PI / 2
 
-        drawRotatedSegment(context, pacmanImg, snakeBody[0][0] * cellsize, snakeBody[0][1] * cellsize, cellsize, angle, pacmanFrame)
+        drawRotatedSegment(context, C.pacmanImg, snakeBody[0][0] * C.CELLSIZE, snakeBody[0][1] * C.CELLSIZE, C.CELLSIZE, angle, pacmanFrame)
 
     } else {
 
         if (pauseBeforeBoss) {
             for (let i = 0; i < snakeBody.length; i++) {
-                if (pauseBeforeBossTick < PAUSE_BEFORE_BOSS_TICKS) {
+                if (pauseBeforeBossTick < C.PAUSE_BEFORE_BOSS_TICKS) {
                     let angle = 0
 
                     if (snakeBody[i][2] === "Right") angle = 0
@@ -364,10 +317,10 @@ function drawSnake(context) {
                     if (snakeBody[i][2] === "Up") angle = -Math.PI / 2
                     if (snakeBody[i][2] === "Down") angle = Math.PI / 2
                     if (pauseBeforeBossTick % 2 == 0) {
-                        drawRotatedSegment(context, pacmanStrongImg, snakeBody[i][0] * cellsize, snakeBody[i][1] * cellsize, cellsize, angle, pacmanFrame)
+                        drawRotatedSegment(context, C.pacmanStrongImg, snakeBody[i][0] * C.CELLSIZE, snakeBody[i][1] * C.CELLSIZE, C.CELLSIZE, angle, pacmanFrame)
                     }
                     else {
-                        drawRotatedSegment(context, pacmanImg, snakeBody[i][0] * cellsize, snakeBody[i][1] * cellsize, cellsize, angle, pacmanFrame)
+                        drawRotatedSegment(context, C.pacmanImg, snakeBody[i][0] * C.CELLSIZE, snakeBody[i][1] * C.CELLSIZE, C.CELLSIZE, angle, pacmanFrame)
                     }
                 }
             }
@@ -387,7 +340,7 @@ function drawSnake(context) {
                         if (snakeBody[i][2] === "Up") angle = -Math.PI / 2
                         if (snakeBody[i][2] === "Down") angle = Math.PI / 2
 
-                        drawRotatedSegment(context, pacmanImg, snakeBody[i][0] * cellsize, snakeBody[i][1] * cellsize, cellsize, angle, pacmanFrame)
+                        drawRotatedSegment(context, C.pacmanImg, snakeBody[i][0] * C.CELLSIZE, snakeBody[i][1] * C.CELLSIZE, C.CELLSIZE, angle, pacmanFrame)
                     }
                     drawPoisonedTail(context)
 
@@ -402,7 +355,7 @@ function drawSnake(context) {
                         if (snakeBody[i][2] === "Up") angle = -Math.PI / 2
                         if (snakeBody[i][2] === "Down") angle = Math.PI / 2
 
-                        drawRotatedSegment(context, pacmanImg, snakeBody[i][0] * cellsize, snakeBody[i][1] * cellsize, cellsize, angle, pacmanFrame)
+                        drawRotatedSegment(context, C.pacmanImg, snakeBody[i][0] * C.CELLSIZE, snakeBody[i][1] * C.CELLSIZE, C.CELLSIZE, angle, pacmanFrame)
                     }
                 }
             } else {
@@ -420,19 +373,19 @@ function drawSnake(context) {
 
                         if (strongTick < 20 && !unlimitedPower) {
                             if (strongTick % 2 == 0) {
-                                drawRotatedSegment(context, pacmanStrongImg, snakeBody[i][0] * cellsize, snakeBody[i][1] * cellsize, cellsize, angle, pacmanFrame)
+                                drawRotatedSegment(context, C.pacmanStrongImg, snakeBody[i][0] * C.CELLSIZE, snakeBody[i][1] * C.CELLSIZE, C.CELLSIZE, angle, pacmanFrame)
                             }
                             else {
-                                drawRotatedSegment(context, pacmanImg, snakeBody[i][0] * cellsize, snakeBody[i][1] * cellsize, cellsize, angle, pacmanFrame)
+                                drawRotatedSegment(context, C.pacmanImg, snakeBody[i][0] * C.CELLSIZE, snakeBody[i][1] * C.CELLSIZE, C.CELLSIZE, angle, pacmanFrame)
                             }
                         } else {
-                            drawRotatedSegment(context, pacmanStrongImg, snakeBody[i][0] * cellsize, snakeBody[i][1] * cellsize, cellsize, angle, pacmanFrame)
+                            drawRotatedSegment(context, C.pacmanStrongImg, snakeBody[i][0] * C.CELLSIZE, snakeBody[i][1] * C.CELLSIZE, C.CELLSIZE, angle, pacmanFrame)
                         }
 
 
                     }
                     drawPoisonedTail(context)
-                    if (poisonedBossTick < POISONED_BOSS_TICKS && isBossStage) {
+                    if (poisonedBossTick < C.POISONED_BOSS_TICKS && isBossStage) {
                         let angle = 0
 
                         if (snakeBody[0][2] === "Right") angle = 0
@@ -440,7 +393,7 @@ function drawSnake(context) {
                         if (snakeBody[0][2] === "Up") angle = -Math.PI / 2
                         if (snakeBody[0][2] === "Down") angle = Math.PI / 2
 
-                        drawRotatedSegment(context, pacmanPoisonImg, snakeBody[0][0] * cellsize, snakeBody[0][1] * cellsize, cellsize, angle, pacmanFrame)
+                        drawRotatedSegment(context, C.pacmanPoisonImg, snakeBody[0][0] * C.CELLSIZE, snakeBody[0][1] * C.CELLSIZE, C.CELLSIZE, angle, pacmanFrame)
                     }
 
                 }
@@ -456,17 +409,17 @@ function drawSnake(context) {
 
                         if (strongTick < 20 && !unlimitedPower) {
                             if (strongTick % 2 == 0) {
-                                drawRotatedSegment(context, pacmanStrongImg, snakeBody[i][0] * cellsize, snakeBody[i][1] * cellsize, cellsize, angle, pacmanFrame)
+                                drawRotatedSegment(context, C.pacmanStrongImg, snakeBody[i][0] * C.CELLSIZE, snakeBody[i][1] * C.CELLSIZE, C.CELLSIZE, angle, pacmanFrame)
                             }
                             else {
-                                drawRotatedSegment(context, pacmanImg, snakeBody[i][0] * cellsize, snakeBody[i][1] * cellsize, cellsize, angle, pacmanFrame)
+                                drawRotatedSegment(context, C.pacmanImg, snakeBody[i][0] * C.CELLSIZE, snakeBody[i][1] * C.CELLSIZE, C.CELLSIZE, angle, pacmanFrame)
                             }
                         }
                         else {
-                            drawRotatedSegment(context, pacmanStrongImg, snakeBody[i][0] * cellsize, snakeBody[i][1] * cellsize, cellsize, angle, pacmanFrame)
+                            drawRotatedSegment(context, C.pacmanStrongImg, snakeBody[i][0] * C.CELLSIZE, snakeBody[i][1] * C.CELLSIZE, C.CELLSIZE, angle, pacmanFrame)
                         }
                     }
-                    if (poisonedBossTick < POISONED_BOSS_TICKS && isBossStage) {
+                    if (poisonedBossTick < C.POISONED_BOSS_TICKS && isBossStage) {
                         let angle = 0
 
                         if (snakeBody[0][2] === "Right") angle = 0
@@ -474,10 +427,10 @@ function drawSnake(context) {
                         if (snakeBody[0][2] === "Up") angle = -Math.PI / 2
                         if (snakeBody[0][2] === "Down") angle = Math.PI / 2
                         if (poisonedBossTick > 0) {
-                            drawRotatedSegment(context, pacmanPoisonImg, snakeBody[0][0] * cellsize, snakeBody[0][1] * cellsize, cellsize, angle, pacmanFrame)
+                            drawRotatedSegment(context, C.pacmanPoisonImg, snakeBody[0][0] * C.CELLSIZE, snakeBody[0][1] * C.CELLSIZE, C.CELLSIZE, angle, pacmanFrame)
                         }
                         else {
-                            drawRotatedSegment(context, pacmanStrongImg, snakeBody[0][0] * cellsize, snakeBody[0][1] * cellsize, cellsize, angle, pacmanFrame)
+                            drawRotatedSegment(context, C.pacmanStrongImg, snakeBody[0][0] * C.CELLSIZE, snakeBody[0][1] * C.CELLSIZE, C.CELLSIZE, angle, pacmanFrame)
                         }
                     }
                 }
@@ -498,7 +451,7 @@ function drawPoisonedTail(context) {
         if (snakeBody[i][2] === "Up") angle = -Math.PI / 2
         if (snakeBody[i][2] === "Down") angle = Math.PI / 2
 
-        drawRotatedSegment(context, pacmanPoisonImg, snakeBody[i][0] * cellsize, snakeBody[i][1] * cellsize, cellsize, angle, pacmanFrame)
+        drawRotatedSegment(context, C.pacmanPoisonImg, snakeBody[i][0] * C.CELLSIZE, snakeBody[i][1] * C.CELLSIZE, C.CELLSIZE, angle, pacmanFrame)
     }
 }
 
@@ -521,7 +474,7 @@ function giveGhostNewDir(ghost, newDir) {
         ghost.ghostSpeedY = 0
     }
     ghost.changeTick = 0
-    ghost.changeDelay = Math.floor(Math.random() * (ghostMaxChangeDirDelay - ghostMinChangeDirDelay + 1)) + ghostMinChangeDirDelay
+    ghost.changeDelay = Math.floor(Math.random() * (C.ghostMaxChangeDirDelay - C.ghostMinChangeDirDelay + 1)) + C.ghostMinChangeDirDelay
     ghost.availableDirs = getAvailableDirs(ghost)
 }
 
@@ -559,9 +512,9 @@ function getAvailableDirs(ghost) {
     const dirs = []
 
     if (ghost.x > 0) dirs.push("Left")
-    if (ghost.x < cols - 1) dirs.push("Right")
+    if (ghost.x < C.COLS - 1) dirs.push("Right")
     if (ghost.y > 0) dirs.push("Up")
-    if (ghost.y < rows - 1) dirs.push("Down")
+    if (ghost.y < C.ROWS - 1) dirs.push("Down")
 
     return dirs
 }
@@ -708,7 +661,7 @@ function updateBoard(context) {
     if (!gameStarted) {
 
             context.drawImage(
-                startGameImg,
+                C.startGameImg,
                 0, 0,
                 500, 500,
                 0, 0,
@@ -717,8 +670,8 @@ function updateBoard(context) {
 
         
         pacmanFrameTick++
-        if (pacmanFrameTick >= PACMAN_DELAY) {
-            pacmanFrame = (pacmanFrame + 1) % PACMAN_FRAMES
+        if (pacmanFrameTick >= C.PACMAN_DELAY) {
+            pacmanFrame = (pacmanFrame + 1) % C.PACMAN_FRAMES
             pacmanFrameTick = 0
         }
 
@@ -733,13 +686,13 @@ function updateBoard(context) {
         if (gameOver) {
 
             gameoverFrameTick++
-            if (gameoverFrameTick >= GAMEOVER_DELAY) {
-                gameoverFrame = (gameoverFrame + 1) % GAMEOVER_FRAMES
+            if (gameoverFrameTick >= C.GAMEOVER_DELAY) {
+                gameoverFrame = (gameoverFrame + 1) % C.GAMEOVER_FRAMES
                 gameoverFrameTick = 0
             }
 
             context.drawImage(
-                gameOverImg,
+                C.gameOverImg,
                 gameoverFrame * 500, 0,
                 500, 500,
                 0, 0,
@@ -750,13 +703,13 @@ function updateBoard(context) {
 
         } else if (pauseBeforeBoss) {
             pauseBossFrameTick++
-            if (pauseBossFrameTick >= PAUSE_BOSS_DELAY) {
-                pauseBossFrame = (pauseBossFrame + 1) % PAUSE_BOSS_FRAMES
+            if (pauseBossFrameTick >= C.PAUSE_BOSS_DELAY) {
+                pauseBossFrame = (pauseBossFrame + 1) % C.PAUSE_BOSS_FRAMES
                 pauseBossFrameTick = 0
             }
 
             context.drawImage(
-                pauseBossImg,
+                C.pauseBossImg,
                 pauseBossFrame * 500, 0,
                 500, 500,
                 0, 0,
@@ -767,7 +720,7 @@ function updateBoard(context) {
             drawSnake(context)
             ghosts.forEach(ghost => drawGhost(context, ghost))
             cakes.forEach(cake => drawCake(context, cake))
-            if (pauseBeforeBossTick >= PAUSE_BEFORE_BOSS_TICKS) {
+            if (pauseBeforeBossTick >= C.PAUSE_BEFORE_BOSS_TICKS) {
                 pauseBeforeBoss = false
                 pauseBeforeBossTick = 0
                 startBossStage()
@@ -778,13 +731,13 @@ function updateBoard(context) {
             if (isBossStage) {
 
                 bossFrameTick++
-                if (bossFrameTick >= BOSS_DELAY) {
-                    bossFrame = (bossFrame + 1) % BOSS_FRAMES
+                if (bossFrameTick >= C.BOSS_DELAY) {
+                    bossFrame = (bossFrame + 1) % C.BOSS_FRAMES
                     bossFrameTick = 0
                 }
 
                 context.drawImage(
-                    bossImg,
+                    C.bossImg,
                     bossFrame * 500, 0,
                     500, 500,
                     0, 0,
@@ -792,11 +745,11 @@ function updateBoard(context) {
                 )
 
                 bossStartTick++
-                if (bossStartTick > BOSS_START_SAFE_TICKS) {
+                if (bossStartTick > C.BOSS_START_SAFE_TICKS) {
                     tailCuttingTick++
-                    if (tailCuttingTick >= TAIL_CUTTING_DELAY) {
+                    if (tailCuttingTick >= C.TAIL_CUTTING_DELAY) {
                         poisonedBossTick++
-                        if (poisonedBossTick >= POISONED_BOSS_TICKS) {
+                        if (poisonedBossTick >= C.POISONED_BOSS_TICKS) {
                             cutTail()
                             poisonedBossTick = 0
                             tailCuttingTick = 0
@@ -810,7 +763,7 @@ function updateBoard(context) {
                 if (poisoned) {
                     poisonedTick++
 
-                    if (poisonedTick >= POISONED_TICKS) {
+                    if (poisonedTick >= C.POISONED_TICKS) {
                         poisoned = false
                         poisonedTick = 0
 
@@ -870,15 +823,15 @@ function updateBoard(context) {
 
 
             if (snakeX < 0) {
-                snakeX = cols - 1
+                snakeX = C.COLS - 1
             }
-            if (snakeX > (cols - 1)) {
+            if (snakeX > (C.COLS - 1)) {
                 snakeX = 0
             }
             if (snakeY < 0) {
-                snakeY = rows - 1
+                snakeY = C.ROWS - 1
             }
-            if (snakeY > (rows - 1)) {
+            if (snakeY > (C.ROWS - 1)) {
                 snakeY = 0
             }
 
@@ -912,7 +865,7 @@ function updateBoard(context) {
                 snakeLength += 1
                 isPacmanStrong = true
                 hungerCounter += 1
-                strongTick = STRONG_TICKS
+                strongTick = C.STRONG_TICKS
                 if (poisoned)
                     scoreElem.innerText = `Score: ${snakeLength - poisonCount - 1}`
                 else
@@ -934,7 +887,7 @@ function updateBoard(context) {
             if (poisoned) {
                 poisonedTick++
 
-                if (poisonedTick >= POISONED_TICKS) {
+                if (poisonedTick >= C.POISONED_TICKS) {
                     poisoned = false
                     poisonedTick = 0
 
@@ -944,8 +897,8 @@ function updateBoard(context) {
             }
 
             pacmanFrameTick++
-            if (pacmanFrameTick >= PACMAN_DELAY) {
-                pacmanFrame = (pacmanFrame + 1) % PACMAN_FRAMES
+            if (pacmanFrameTick >= C.PACMAN_DELAY) {
+                pacmanFrame = (pacmanFrame + 1) % C.PACMAN_FRAMES
                 pacmanFrameTick = 0
             }
 
@@ -955,13 +908,13 @@ function updateBoard(context) {
 
                 ghost.age++
                 if ((ghost.x <= 0 && ghost.y <= 0) ||
-                    (ghost.x <= 0 && ghost.y >= rows - 1) ||
-                    (ghost.x >= cols - 1 && ghost.y <= 0) ||
-                    (ghost.x >= cols - 1 && ghost.y >= rows - 1) ||
+                    (ghost.x <= 0 && ghost.y >= C.ROWS - 1) ||
+                    (ghost.x >= C.COLS - 1 && ghost.y <= 0) ||
+                    (ghost.x >= C.COLS - 1 && ghost.y >= C.ROWS - 1) ||
                     ((ghost.x <= 0) && ghost.curDir === "Left") ||
-                    ((ghost.x >= (cols - 1)) && ghost.curDir === "Right") ||
+                    ((ghost.x >= (C.COLS - 1)) && ghost.curDir === "Right") ||
                     ((ghost.y <= 0) && ghost.curDir === "Up") ||
-                    ((ghost.y >= (rows - 1)) && ghost.curDir === "Down")
+                    ((ghost.y >= (C.ROWS - 1)) && ghost.curDir === "Down")
                 ) {
                     ghost.availableDirs = getAvailableDirs(ghost)
                     giveGhostNewDir(ghost, ghost.availableDirs[Math.floor(Math.random() * ghost.availableDirs.length)])
@@ -1001,7 +954,7 @@ function updateBoard(context) {
                         if (Math.random() <= ghostChance) {
                             const gh = spawnGhost({ x: ghost.x, y: ghost.y })
                             giveGhostSpeed(gh)
-                            if (ghosts.length >= GHOSTS_BOSS_AMOUNT) {
+                            if (ghosts.length >= C.GHOSTS_BOSS_AMOUNT) {
                                 pauseBeforeBoss = true
                             }
                             ghostChance /= 2
@@ -1079,7 +1032,7 @@ function updateBoard(context) {
                 localStorage.setItem("max_score", maxScore)
             }
 
-            if (hungerCounter >= HUNGER_AMOUNT) {
+            if (hungerCounter >= C.HUNGER_AMOUNT) {
                 hunger = true
                 completeAchievement(hungerElem)
                 try {
@@ -1092,7 +1045,7 @@ function updateBoard(context) {
                 }
             }
 
-            if ((snakeBody.length - 1) >= PACIFIST_AMOUNT && !pacifistFailed && !pacifist) {
+            if ((snakeBody.length - 1) >= C.PACIFIST_AMOUNT && !pacifistFailed && !pacifist) {
                 pacifist = true
                 completeAchievement(pacifistElem)
                 try {
@@ -1128,8 +1081,8 @@ function tryGhostAppear() {
 }
 
 function randomizeCell() {
-    const x = Math.floor(Math.random() * (rows - 1)) + 1
-    const y = Math.floor(Math.random() * (cols - 1)) + 1
+    const x = Math.floor(Math.random() * (C.ROWS - 1)) + 1
+    const y = Math.floor(Math.random() * (C.COLS - 1)) + 1
 
     return { x, y }
 }
@@ -1146,7 +1099,7 @@ function isOpposite(a, b) {
 function handlePressedKey(e) {
     if (!gameStarted) startGame()
     if (gameOver) {
-        if (Date.now() - gameOverStartTime < GAMEOVER_BLOCK_DURATION) {
+        if (Date.now() - gameOverStartTime < C.GAMEOVER_BLOCK_DURATION) {
             return
         }
 
@@ -1172,8 +1125,8 @@ function handlePressedKey(e) {
 }
 
 function updateSliderColor(value) {
-    volumeSlider.style.pointerEvents = bgMusic.muted ? "none" : "auto"
-    volumeSlider.style.opacity = bgMusic.muted ? "0.4" : "1"
+    volumeSlider.style.pointerEvents = C.bgMusic.muted ? "none" : "auto"
+    volumeSlider.style.opacity = C.bgMusic.muted ? "0.4" : "1"
     volumeSlider.style.setProperty("--fill", `${value * 100}%`)
 }
 
@@ -1220,8 +1173,8 @@ window.onload = function () {
         { passive: false }
     )
     const boardElem = document.getElementById("board")
-    boardElem.width = cellsize * cols
-    boardElem.height = cellsize * rows
+    boardElem.width = C.CELLSIZE * C.COLS
+    boardElem.height = C.CELLSIZE * C.ROWS
     const context = boardElem.getContext("2d")
     scoreElem = document.getElementById("scoreText")
     maxScoreElem = document.getElementById("maxScoreText")
@@ -1293,46 +1246,46 @@ window.onload = function () {
     const soundBtn = document.getElementById("soundBtn")
     document.addEventListener("keydown", () => {
         if (!musicStarted) {
-            bgMusic.play().catch(() => { })
+            C.bgMusic.play().catch(() => { })
             musicStarted = true
         }
     })
     const savedVolume = Number(localStorage.getItem("game_volume"))
     lastVolume = Number.isFinite(savedVolume) ? savedVolume : 0.4
-    bgMusic.muted = localStorage.getItem("game_muted") === "true"
-    if (bgMusic.muted) {
-        soundBtn.classList.toggle("muted", bgMusic.muted)
-        soundBtn.innerText = bgMusic.muted ? "Unmute" : "Mute"
+    C.bgMusic.muted = localStorage.getItem("game_muted") === "true"
+    if (C.bgMusic.muted) {
+        soundBtn.classList.toggle("muted", C.bgMusic.muted)
+        soundBtn.innerText = C.bgMusic.muted ? "Unmute" : "Mute"
 
     }
     volumeSlider = document.getElementById("volumeSlider")
     volumeSlider.value = lastVolume
-    bgMusic.volume = volumeSlider.value
+    C.bgMusic.volume = volumeSlider.value
     updateSliderColor(volumeSlider.value)
 
     soundBtn.addEventListener("click", () => {
-        if (!bgMusic.muted) {
-            bgMusic.muted = true
-            lastVolume = bgMusic.volume
+        if (!C.bgMusic.muted) {
+            C.bgMusic.muted = true
+            lastVolume = C.bgMusic.volume
         } else {
-            bgMusic.muted = false
-            bgMusic.volume = lastVolume ?? localStorage.getItem("game_volume") ?? 1
-            volumeSlider.value = bgMusic.volume
+            C.bgMusic.muted = false
+            C.bgMusic.volume = lastVolume ?? localStorage.getItem("game_volume") ?? 1
+            volumeSlider.value = C.bgMusic.volume
         }
 
         updateSliderColor(volumeSlider.value)
 
-        soundBtn.classList.toggle("muted", bgMusic.muted)
-        soundBtn.innerText = bgMusic.muted ? "Unmute" : "Mute"
+        soundBtn.classList.toggle("muted", C.bgMusic.muted)
+        soundBtn.innerText = C.bgMusic.muted ? "Unmute" : "Mute"
 
-        localStorage.setItem("game_muted", String(bgMusic.muted))
+        localStorage.setItem("game_muted", String(C.bgMusic.muted))
     });
 
 
 
     volumeSlider.addEventListener("input", () => {
-        bgMusic.volume = volumeSlider.value
-        lastVolume = bgMusic.volume
+        C.bgMusic.volume = volumeSlider.value
+        lastVolume = C.bgMusic.volume
 
         updateSliderColor(volumeSlider.value)
 
