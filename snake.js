@@ -1,32 +1,10 @@
 import * as C from "./Src/Constants.js";
+import {state} from "./Src/State.js"
 
 
-let musicStarted = false
-let speedX = 0
-let speedY = 0
-let snakeX
-let snakeY
-let snakeLength = 1
-let gameOver = false
-let foodX = null
-let foodY = null
-let cakes = []
 let scoreElem
 let maxScoreElem
 let rulesElem
-
-let lastVolume
-
-let snakeBody = []
-let curDirection = null
-let nextDirection = null
-let directionLocked = false
-let cakeChance = 0.2
-let ghostChance = 0.4
-let ghostChanceToEatCake = 0.1
-let ghosts = []
-let maxScore = 0
-
 
 let catchYourTailElem
 let hungerElem
@@ -34,114 +12,61 @@ let pacifistElem
 let ghostHunterElem
 let achievementList
 
-let catchYourTail = false
-let previousTailX = 0
-let previousTailY = 0
-
-let hunger = false
-let hungerCounter = 0
-
-
-let pacifist = false
-let pacifistFailed = false
-
-
-
-let ghostHunter = false
-
-let isBossStage = false
-let bossFrame = 0
-let bossFrameTick = 0
-
-let poisonedBossTick = 0
-let foodSpawnProhibited = false
-let cakeSpawnProhibited = false
-let ghostSpawnProhibited = false
-
-let unlimitedPower = false
-let tailCuttingTick = 0
-
-
-let pauseBeforeBoss = false
-let pauseBeforeBossTick = 0
-
-let pauseBossFrame = 0
-let pauseBossFrameTick = 0
-
-let bossStartTick = 0
-
-let isPacmanStrong = true
-let strongTick = 0
-
-let pacmanFrame = 0
-let pacmanFrameTick = 0
-let poisonedTick = 0
-let poisoned = false
-
-
-let gameOverStartTime = 0
-
-
-let gameoverFrame = 0
-let gameoverFrameTick = 0
-
-
 let volumeSlider
 
 
-let gameStarted = false
 
 function setNewGame() {
-    gameStarted = false
+    state.game.gameStarted = false
     scoreElem = document.getElementById("scoreText")
     scoreElem.innerText = "Score: 0"
-    speedX = 0
-    speedY = 0
-    snakeX = 5
-    snakeY = 5
-    snakeLength = 1
-    gameOver = false
-    snakeBody = []
-    cakes.length = 0
-    ghosts.length = 0
-    curDirection = null
-    nextDirection = null
-    directionLocked = false
-    poisonedTick = 0
-    poisoned = false
-    ghostChance = 0.4
-    isPacmanStrong = false
-    gameOverStartTime = 0
+    state.snake.speedX = 0
+    state.snake.speedY = 0
+    state.snake.snakeX = 5
+    state.snake.snakeY = 5
+    state.snake.snakeLength = 1
+    state.game.gameOver = false
+    state.snake.snakeBody = []
+    state.cakes.length = 0
+    state.ghosts.length = 0
+    state.snake.curDirection = null
+    state.snake.nextDirection = null
+    state.snake.directionLocked = false
+    state.tickers.poisonedTick = 0
+    state.snake.poisoned = false
+    state.chances.ghostChance = 0.4
+    state.snake.isPacmanStrong = false
+    state.game.gameOverStartTime = 0
 
-    isBossStage = false
-    foodSpawnProhibited = false
-    cakeSpawnProhibited = false
-    ghostSpawnProhibited = false
-    unlimitedPower = false
-    poisonedBossTick = 0
+    state.game.isBossStage = false
+    state.game.foodSpawnProhibited = false
+    state.game.cakeSpawnProhibited = false
+    state.game.ghostSpawnProhibited = false
+    state.snake.unlimitedPower = false
+    state.tickers.poisonedBossTick = 0
     stopBossStage()
 
-    hungerCounter = 0
-    pacifistFailed = false
+    state.achievements.hungerCounter = 0
+    state.achievements.pacifistFailed = false
     pacifistElem.classList.remove("failed")
     tryCakeAppear()
     spawnGhost(randomizeCell())
 
 
     const { x: startSnakeX, y: startSnakeY } = randomizeCell()
-    snakeX = startSnakeX
-    snakeY = startSnakeY
-    snakeBody.push([snakeX, snakeY])
+    state.snake.snakeX = startSnakeX
+    state.snake.snakeY = startSnakeY
+    state.snake.snakeBody.push([state.snake.snakeX, state.snake.snakeY])
 
     const { x: startFoodX, y: startFoodY } = randomizeCell()
-    foodX = startFoodX
-    foodY = startFoodY
+    state.food.foodX = startFoodX
+    state.food.foodY = startFoodY
 
 }
 
 function startGame() {
-    gameStarted = true
-    ghosts.forEach(gh => giveGhostSpeed(gh))
+    state.game.gameStarted = true
+    state.ghosts.forEach(gh => giveGhostSpeed(gh))
 }
 
 function spawnCake() {
@@ -152,12 +77,12 @@ function spawnCake() {
         x = pos.x
         y = pos.y
     } while (
-        (foodX != null && foodY != null && x === foodX && y === foodY) ||
-        cakes.some(cake => cake.x === x && cake.y === y) ||
-        snakeBody.some(seg => seg[0] === x && seg[1] === y)
+        (state.food.foodX != null && state.food.foodY != null && x === state.food.foodX && y === state.food.foodY) ||
+        state.cakes.some(cake => cake.x === x && cake.y === y) ||
+        state.snake.snakeBody.some(seg => seg[0] === x && seg[1] === y)
     )
 
-    cakes.push({
+    state.cakes.push({
         id: crypto.randomUUID(),
         x, y
     })
@@ -179,7 +104,7 @@ function spawnGhost({ x, y }) {
     }
 
     newGhost.availableDirs = getAvailableDirs(newGhost)
-    ghosts.push(newGhost)
+    state.ghosts.push(newGhost)
 
     return newGhost
 }
@@ -206,8 +131,8 @@ function giveGhostSpeed(ghost) {
 }
 
 function drawGhost(context, ghost) {
-    if (pauseBeforeBoss) {
-        if (pauseBeforeBossTick % 2 == 0) {
+    if (state.game.pauseBeforeBoss) {
+        if (state.tickers.pauseBeforeBossTick % 2 == 0) {
             context.drawImage(
                 C.ghostImg,
                 ghost.x * C.CELLSIZE, ghost.y * C.CELLSIZE, C.CELLSIZE, C.CELLSIZE,
@@ -230,10 +155,10 @@ function drawGhost(context, ghost) {
 
 
 function drawFoodBox(context) {
-    if (foodX != null && foodY != null) {
+    if (state.food.foodX != null && state.food.foodY != null) {
         context.drawImage(
             C.foodImg,
-            foodX * C.CELLSIZE, foodY * C.CELLSIZE, C.CELLSIZE, C.CELLSIZE,
+            state.food.foodX * C.CELLSIZE, state.food.foodY * C.CELLSIZE, C.CELLSIZE, C.CELLSIZE,
         )
     }
     else return
@@ -241,7 +166,7 @@ function drawFoodBox(context) {
 }
 
 function newFoodPos() {
-    if (!foodSpawnProhibited) {
+    if (!state.game.foodSpawnProhibited) {
         let x, y
         do {
             const pos = randomizeCell()
@@ -250,12 +175,12 @@ function newFoodPos() {
         } while ((x == 0 && y == 0) ||
         (x == (C.COLS - 1) && y == 0) ||
         (x == 0 && y == (C.ROWS - 1)) ||
-        (x == (C.COLS - 1) && y == (C.ROWS - 1)) || cakes.some(cake => cake.x == x && cake.y == y))
-        foodX = x
-        foodY = y
+        (x == (C.COLS - 1) && y == (C.ROWS - 1)) || state.cakes.some(cake => cake.x == x && cake.y == y))
+        state.food.foodX = x
+        state.food.foodY = y
     } else {
-        foodX = null
-        foodY = null
+        state.food.foodX = null
+        state.food.foodY = null
     }
 
 }
@@ -292,35 +217,35 @@ function drawRotatedSegment(context, image, x, y, cellsize, angle, frame) {
 }
 
 function drawSnake(context) {
-    const poisonCount = (Math.floor((snakeBody.length) / 2) >= 1) ? Math.ceil((snakeBody.length) / 2) : 0
+    const poisonCount = (Math.floor((state.snake.snakeBody.length) / 2) >= 1) ? Math.ceil((state.snake.snakeBody.length) / 2) : 0
 
-    if (!gameStarted) {
+    if (!state.game.gameStarted) {
 
         let angle = 0
 
-        if (snakeBody[0][2] === "Right") angle = 0
-        if (snakeBody[0][2] === "Left") angle = Math.PI
-        if (snakeBody[0][2] === "Up") angle = -Math.PI / 2
-        if (snakeBody[0][2] === "Down") angle = Math.PI / 2
+        if (state.snake.snakeBody[0][2] === "Right") angle = 0
+        if (state.snake.snakeBody[0][2] === "Left") angle = Math.PI
+        if (state.snake.snakeBody[0][2] === "Up") angle = -Math.PI / 2
+        if (state.snake.snakeBody[0][2] === "Down") angle = Math.PI / 2
 
-        drawRotatedSegment(context, C.pacmanImg, snakeBody[0][0] * C.CELLSIZE, snakeBody[0][1] * C.CELLSIZE, C.CELLSIZE, angle, pacmanFrame)
+        drawRotatedSegment(context, C.pacmanImg, state.snake.snakeBody[0][0] * C.CELLSIZE, state.snake.snakeBody[0][1] * C.CELLSIZE, C.CELLSIZE, angle, state.frames.pacmanFrame)
 
     } else {
 
-        if (pauseBeforeBoss) {
-            for (let i = 0; i < snakeBody.length; i++) {
-                if (pauseBeforeBossTick < C.PAUSE_BEFORE_BOSS_TICKS) {
+        if (state.game.pauseBeforeBoss) {
+            for (let i = 0; i < state.snake.snakeBody.length; i++) {
+                if (state.tickers.pauseBeforeBossTick < C.PAUSE_BEFORE_BOSS_TICKS) {
                     let angle = 0
 
-                    if (snakeBody[i][2] === "Right") angle = 0
-                    if (snakeBody[i][2] === "Left") angle = Math.PI
-                    if (snakeBody[i][2] === "Up") angle = -Math.PI / 2
-                    if (snakeBody[i][2] === "Down") angle = Math.PI / 2
-                    if (pauseBeforeBossTick % 2 == 0) {
-                        drawRotatedSegment(context, C.pacmanStrongImg, snakeBody[i][0] * C.CELLSIZE, snakeBody[i][1] * C.CELLSIZE, C.CELLSIZE, angle, pacmanFrame)
+                    if (state.snake.snakeBody[i][2] === "Right") angle = 0
+                    if (state.snake.snakeBody[i][2] === "Left") angle = Math.PI
+                    if (state.snake.snakeBody[i][2] === "Up") angle = -Math.PI / 2
+                    if (state.snake.snakeBody[i][2] === "Down") angle = Math.PI / 2
+                    if (state.tickers.pauseBeforeBossTick % 2 == 0) {
+                        drawRotatedSegment(context, C.pacmanStrongImg, state.snake.snakeBody[i][0] * C.CELLSIZE, state.snake.snakeBody[i][1] * C.CELLSIZE, C.CELLSIZE, angle, state.frames.pacmanFrame)
                     }
                     else {
-                        drawRotatedSegment(context, C.pacmanImg, snakeBody[i][0] * C.CELLSIZE, snakeBody[i][1] * C.CELLSIZE, C.CELLSIZE, angle, pacmanFrame)
+                        drawRotatedSegment(context, C.pacmanImg, state.snake.snakeBody[i][0] * C.CELLSIZE, state.snake.snakeBody[i][1] * C.CELLSIZE, C.CELLSIZE, angle, state.frames.pacmanFrame)
                     }
                 }
             }
@@ -328,109 +253,109 @@ function drawSnake(context) {
 
 
 
-            if (!isPacmanStrong && !unlimitedPower) {
-                if (poisoned) {
+            if (!state.snake.isPacmanStrong && !state.snake.unlimitedPower) {
+                if (state.snake.poisoned) {
 
-                    for (let i = snakeBody.length - 1; i >= poisonCount; i--) {
+                    for (let i = state.snake.snakeBody.length - 1; i >= poisonCount; i--) {
 
                         let angle = 0
 
-                        if (snakeBody[i][2] === "Right") angle = 0
-                        if (snakeBody[i][2] === "Left") angle = Math.PI
-                        if (snakeBody[i][2] === "Up") angle = -Math.PI / 2
-                        if (snakeBody[i][2] === "Down") angle = Math.PI / 2
+                        if (state.snake.snakeBody[i][2] === "Right") angle = 0
+                        if (state.snake.snakeBody[i][2] === "Left") angle = Math.PI
+                        if (state.snake.snakeBody[i][2] === "Up") angle = -Math.PI / 2
+                        if (state.snake.snakeBody[i][2] === "Down") angle = Math.PI / 2
 
-                        drawRotatedSegment(context, C.pacmanImg, snakeBody[i][0] * C.CELLSIZE, snakeBody[i][1] * C.CELLSIZE, C.CELLSIZE, angle, pacmanFrame)
+                        drawRotatedSegment(context, C.pacmanImg, state.snake.snakeBody[i][0] * C.CELLSIZE, state.snake.snakeBody[i][1] * C.CELLSIZE, C.CELLSIZE, angle, state.frames.pacmanFrame)
                     }
                     drawPoisonedTail(context)
 
                 }
                 else {
-                    for (let i = 0; i < snakeBody.length; i++) {
+                    for (let i = 0; i < state.snake.snakeBody.length; i++) {
 
                         let angle = 0
 
-                        if (snakeBody[i][2] === "Right") angle = 0
-                        if (snakeBody[i][2] === "Left") angle = Math.PI
-                        if (snakeBody[i][2] === "Up") angle = -Math.PI / 2
-                        if (snakeBody[i][2] === "Down") angle = Math.PI / 2
+                        if (state.snake.snakeBody[i][2] === "Right") angle = 0
+                        if (state.snake.snakeBody[i][2] === "Left") angle = Math.PI
+                        if (state.snake.snakeBody[i][2] === "Up") angle = -Math.PI / 2
+                        if (state.snake.snakeBody[i][2] === "Down") angle = Math.PI / 2
 
-                        drawRotatedSegment(context, C.pacmanImg, snakeBody[i][0] * C.CELLSIZE, snakeBody[i][1] * C.CELLSIZE, C.CELLSIZE, angle, pacmanFrame)
+                        drawRotatedSegment(context, C.pacmanImg, state.snake.snakeBody[i][0] * C.CELLSIZE, state.snake.snakeBody[i][1] * C.CELLSIZE, C.CELLSIZE, angle, state.frames.pacmanFrame)
                     }
                 }
             } else {
-                if (poisoned) {
+                if (state.snake.poisoned) {
 
 
-                    for (let i = snakeBody.length - 1; i >= poisonCount; i--) {
+                    for (let i = state.snake.snakeBody.length - 1; i >= poisonCount; i--) {
 
                         let angle = 0
 
-                        if (snakeBody[i][2] === "Right") angle = 0
-                        if (snakeBody[i][2] === "Left") angle = Math.PI
-                        if (snakeBody[i][2] === "Up") angle = -Math.PI / 2
-                        if (snakeBody[i][2] === "Down") angle = Math.PI / 2
+                        if (state.snake.snakeBody[i][2] === "Right") angle = 0
+                        if (state.snake.snakeBody[i][2] === "Left") angle = Math.PI
+                        if (state.snake.snakeBody[i][2] === "Up") angle = -Math.PI / 2
+                        if (state.snake.snakeBody[i][2] === "Down") angle = Math.PI / 2
 
-                        if (strongTick < 20 && !unlimitedPower) {
-                            if (strongTick % 2 == 0) {
-                                drawRotatedSegment(context, C.pacmanStrongImg, snakeBody[i][0] * C.CELLSIZE, snakeBody[i][1] * C.CELLSIZE, C.CELLSIZE, angle, pacmanFrame)
+                        if (state.tickers.strongTick < 20 && !state.snake.unlimitedPower) {
+                            if (state.tickers.strongTick % 2 == 0) {
+                                drawRotatedSegment(context, C.pacmanStrongImg, state.snake.snakeBody[i][0] * C.CELLSIZE, state.snake.snakeBody[i][1] * C.CELLSIZE, C.CELLSIZE, angle, state.frames.pacmanFrame)
                             }
                             else {
-                                drawRotatedSegment(context, C.pacmanImg, snakeBody[i][0] * C.CELLSIZE, snakeBody[i][1] * C.CELLSIZE, C.CELLSIZE, angle, pacmanFrame)
+                                drawRotatedSegment(context, C.pacmanImg, state.snake.snakeBody[i][0] * C.CELLSIZE, state.snake.snakeBody[i][1] * C.CELLSIZE, C.CELLSIZE, angle, state.frames.pacmanFrame)
                             }
                         } else {
-                            drawRotatedSegment(context, C.pacmanStrongImg, snakeBody[i][0] * C.CELLSIZE, snakeBody[i][1] * C.CELLSIZE, C.CELLSIZE, angle, pacmanFrame)
+                            drawRotatedSegment(context, C.pacmanStrongImg, state.snake.snakeBody[i][0] * C.CELLSIZE, state.snake.snakeBody[i][1] * C.CELLSIZE, C.CELLSIZE, angle, state.frames.pacmanFrame)
                         }
 
 
                     }
                     drawPoisonedTail(context)
-                    if (poisonedBossTick < C.POISONED_BOSS_TICKS && isBossStage) {
+                    if (state.tickers.poisonedBossTick < C.POISONED_BOSS_TICKS && state.game.isBossStage) {
                         let angle = 0
 
-                        if (snakeBody[0][2] === "Right") angle = 0
-                        if (snakeBody[0][2] === "Left") angle = Math.PI
-                        if (snakeBody[0][2] === "Up") angle = -Math.PI / 2
-                        if (snakeBody[0][2] === "Down") angle = Math.PI / 2
+                        if (state.snake.snakeBody[0][2] === "Right") angle = 0
+                        if (state.snake.snakeBody[0][2] === "Left") angle = Math.PI
+                        if (state.snake.snakeBody[0][2] === "Up") angle = -Math.PI / 2
+                        if (state.snake.snakeBody[0][2] === "Down") angle = Math.PI / 2
 
-                        drawRotatedSegment(context, C.pacmanPoisonImg, snakeBody[0][0] * C.CELLSIZE, snakeBody[0][1] * C.CELLSIZE, C.CELLSIZE, angle, pacmanFrame)
+                        drawRotatedSegment(context, C.pacmanPoisonImg, state.snake.snakeBody[0][0] * C.CELLSIZE, state.snake.snakeBody[0][1] * C.CELLSIZE, C.CELLSIZE, angle, state.frames.pacmanFrame)
                     }
 
                 }
                 else {
-                    for (let i = 0; i < snakeBody.length; i++) {
+                    for (let i = 0; i < state.snake.snakeBody.length; i++) {
 
                         let angle = 0
 
-                        if (snakeBody[i][2] === "Right") angle = 0
-                        if (snakeBody[i][2] === "Left") angle = Math.PI
-                        if (snakeBody[i][2] === "Up") angle = -Math.PI / 2
-                        if (snakeBody[i][2] === "Down") angle = Math.PI / 2
+                        if (state.snake.snakeBody[i][2] === "Right") angle = 0
+                        if (state.snake.snakeBody[i][2] === "Left") angle = Math.PI
+                        if (state.snake.snakeBody[i][2] === "Up") angle = -Math.PI / 2
+                        if (state.snake.snakeBody[i][2] === "Down") angle = Math.PI / 2
 
-                        if (strongTick < 20 && !unlimitedPower) {
-                            if (strongTick % 2 == 0) {
-                                drawRotatedSegment(context, C.pacmanStrongImg, snakeBody[i][0] * C.CELLSIZE, snakeBody[i][1] * C.CELLSIZE, C.CELLSIZE, angle, pacmanFrame)
+                        if (state.tickers.strongTick < 20 && !state.snake.unlimitedPower) {
+                            if (state.tickers.strongTick % 2 == 0) {
+                                drawRotatedSegment(context, C.pacmanStrongImg, state.snake.snakeBody[i][0] * C.CELLSIZE, state.snake.snakeBody[i][1] * C.CELLSIZE, C.CELLSIZE, angle, state.frames.pacmanFrame)
                             }
                             else {
-                                drawRotatedSegment(context, C.pacmanImg, snakeBody[i][0] * C.CELLSIZE, snakeBody[i][1] * C.CELLSIZE, C.CELLSIZE, angle, pacmanFrame)
+                                drawRotatedSegment(context, C.pacmanImg, state.snake.snakeBody[i][0] * C.CELLSIZE, state.snake.snakeBody[i][1] * C.CELLSIZE, C.CELLSIZE, angle, state.frames.pacmanFrame)
                             }
                         }
                         else {
-                            drawRotatedSegment(context, C.pacmanStrongImg, snakeBody[i][0] * C.CELLSIZE, snakeBody[i][1] * C.CELLSIZE, C.CELLSIZE, angle, pacmanFrame)
+                            drawRotatedSegment(context, C.pacmanStrongImg, state.snake.snakeBody[i][0] * C.CELLSIZE, state.snake.snakeBody[i][1] * C.CELLSIZE, C.CELLSIZE, angle, state.frames.pacmanFrame)
                         }
                     }
-                    if (poisonedBossTick < C.POISONED_BOSS_TICKS && isBossStage) {
+                    if (state.tickers.poisonedBossTick < C.POISONED_BOSS_TICKS && state.game.isBossStage) {
                         let angle = 0
 
-                        if (snakeBody[0][2] === "Right") angle = 0
-                        if (snakeBody[0][2] === "Left") angle = Math.PI
-                        if (snakeBody[0][2] === "Up") angle = -Math.PI / 2
-                        if (snakeBody[0][2] === "Down") angle = Math.PI / 2
-                        if (poisonedBossTick > 0) {
-                            drawRotatedSegment(context, C.pacmanPoisonImg, snakeBody[0][0] * C.CELLSIZE, snakeBody[0][1] * C.CELLSIZE, C.CELLSIZE, angle, pacmanFrame)
+                        if (state.snake.snakeBody[0][2] === "Right") angle = 0
+                        if (state.snake.snakeBody[0][2] === "Left") angle = Math.PI
+                        if (state.snake.snakeBody[0][2] === "Up") angle = -Math.PI / 2
+                        if (state.snake.snakeBody[0][2] === "Down") angle = Math.PI / 2
+                        if (state.tickers.poisonedBossTick > 0) {
+                            drawRotatedSegment(context, C.pacmanPoisonImg, state.snake.snakeBody[0][0] * C.CELLSIZE, state.snake.snakeBody[0][1] * C.CELLSIZE, C.CELLSIZE, angle, state.frames.pacmanFrame)
                         }
                         else {
-                            drawRotatedSegment(context, C.pacmanStrongImg, snakeBody[0][0] * C.CELLSIZE, snakeBody[0][1] * C.CELLSIZE, C.CELLSIZE, angle, pacmanFrame)
+                            drawRotatedSegment(context, C.pacmanStrongImg, state.snake.snakeBody[0][0] * C.CELLSIZE, state.snake.snakeBody[0][1] * C.CELLSIZE, C.CELLSIZE, angle, state.frames.pacmanFrame)
                         }
                     }
                 }
@@ -441,17 +366,17 @@ function drawSnake(context) {
 
 function drawPoisonedTail(context) {
 
-    const poisonCount = (Math.floor((snakeBody.length) / 2) >= 1) ? Math.ceil((snakeBody.length) / 2) : 0
+    const poisonCount = (Math.floor((state.snake.snakeBody.length) / 2) >= 1) ? Math.ceil((state.snake.snakeBody.length) / 2) : 0
 
     for (let i = 0; i < poisonCount; i++) {
         let angle = 0
 
-        if (snakeBody[i][2] === "Right") angle = 0
-        if (snakeBody[i][2] === "Left") angle = Math.PI
-        if (snakeBody[i][2] === "Up") angle = -Math.PI / 2
-        if (snakeBody[i][2] === "Down") angle = Math.PI / 2
+        if (state.snake.snakeBody[i][2] === "Right") angle = 0
+        if (state.snake.snakeBody[i][2] === "Left") angle = Math.PI
+        if (state.snake.snakeBody[i][2] === "Up") angle = -Math.PI / 2
+        if (state.snake.snakeBody[i][2] === "Down") angle = Math.PI / 2
 
-        drawRotatedSegment(context, C.pacmanPoisonImg, snakeBody[i][0] * C.CELLSIZE, snakeBody[i][1] * C.CELLSIZE, C.CELLSIZE, angle, pacmanFrame)
+        drawRotatedSegment(context, C.pacmanPoisonImg, state.snake.snakeBody[i][0] * C.CELLSIZE, state.snake.snakeBody[i][1] * C.CELLSIZE, C.CELLSIZE, angle, state.frames.pacmanFrame)
     }
 }
 
@@ -479,8 +404,8 @@ function giveGhostNewDir(ghost, newDir) {
 }
 
 function checkIfTheFoodCloseToTheGhost(ghost) {
-    if (foodX != null && foodY != null) {
-        if ((Math.abs(ghost.x - foodX) <= 3) && (Math.abs(ghost.y - foodY) <= 3)) return true
+    if (state.food.foodX != null && state.food.foodY != null) {
+        if ((Math.abs(ghost.x - state.food.foodX) <= 3) && (Math.abs(ghost.y - state.food.foodY) <= 3)) return true
     }
     return false
 }
@@ -488,11 +413,11 @@ function checkIfTheFoodCloseToTheGhost(ghost) {
 function changeGhostDirection(ghost) {
 
     if (checkIfTheFoodCloseToTheGhost(ghost)) {
-        if (foodX != null && foodY != null) {
-            if (ghost.x > foodX) giveGhostNewDir(ghost, "Left")
-            else if (ghost.x < foodX) giveGhostNewDir(ghost, "Right")
-            else if (ghost.y > foodY) giveGhostNewDir(ghost, "Up")
-            else if (ghost.y < foodY) giveGhostNewDir(ghost, "Down")
+        if (state.food.foodX != null && state.food.foodY != null) {
+            if (ghost.x > state.food.foodX) giveGhostNewDir(ghost, "Left")
+            else if (ghost.x < state.food.foodX) giveGhostNewDir(ghost, "Right")
+            else if (ghost.y > state.food.foodY) giveGhostNewDir(ghost, "Up")
+            else if (ghost.y < state.food.foodY) giveGhostNewDir(ghost, "Down")
         }
     }
     else {
@@ -520,12 +445,12 @@ function getAvailableDirs(ghost) {
 }
 
 function getNearestCake(ghost) {
-    if (cakes.length === 0) return null
+    if (state.cakes.length === 0) return null
 
     let nearest = null
     let minDist = Infinity
 
-    for (const cake of cakes) {
+    for (const cake of state.cakes) {
         const dist =
             Math.abs(cake.x - ghost.x) +
             Math.abs(cake.y - ghost.y)
@@ -540,23 +465,23 @@ function getNearestCake(ghost) {
 }
 
 function ghostEatsCake(ghost, cake) {
-    cakes = cakes.filter(c => c.id !== cake.id)
-    ghosts = ghosts.filter(g => g.id !== ghost.id)
+    state.cakes = state.cakes.filter(c => c.id !== cake.id)
+    state.ghosts = state.ghosts.filter(g => g.id !== ghost.id)
 }
 
 function startBossStage() {
-    foodX = null
-    foodY = null
+    state.food.foodX = null
+    state.food.foodY = null
 
-    bossStartTick = 0
-    tailCuttingTick = 0
+    state.tickers.bossStartTick = 0
+    state.tickers.tailCuttingTick = 0
 
-    isBossStage = true
-    foodSpawnProhibited = true
-    cakeSpawnProhibited = true
-    ghostSpawnProhibited = true
-    unlimitedPower = true
-    cakes.length = 0
+    state.game.isBossStage = true
+    state.game.foodSpawnProhibited = true
+    state.game.cakeSpawnProhibited = true
+    state.game.ghostSpawnProhibited = true
+    state.snake.unlimitedPower = true
+    state.cakes.length = 0
 
     const newRules = [
         "▶ Eat eat eat eat eat eat.",
@@ -578,7 +503,7 @@ function startBossStage() {
         }
     })
 
-    if (!ghostHunter) {
+    if (!state.achievements.ghostHunter) {
         catchYourTailElem.classList.add("hidden")
         hungerElem.classList.add("hidden")
         pacifistElem.classList.add("hidden")
@@ -604,11 +529,11 @@ function startBossStage() {
 }
 
 function stopBossStage() {
-    isBossStage = false
-    foodSpawnProhibited = false
-    cakeSpawnProhibited = false
-    ghostSpawnProhibited = false
-    unlimitedPower = false
+    state.game.isBossStage = false
+    state.game.foodSpawnProhibited = false
+    state.game.cakeSpawnProhibited = false
+    state.game.ghostSpawnProhibited = false
+    state.snake.unlimitedPower = false
     catchYourTailElem.classList.remove("hidden")
     hungerElem.classList.remove("hidden")
     pacifistElem.classList.remove("hidden")
@@ -638,17 +563,17 @@ function stopBossStage() {
     })
 
     ghostHunterElem = document.getElementById("ghostHunter")
-    if (!ghostHunter && ghostHunterElem) {
+    if (!state.achievements.ghostHunter && ghostHunterElem) {
         ghostHunterElem.remove()
     }
 
 }
 
 function cutTail() {
-    if (snakeBody.length >= 1) {
-        snakeBody.splice(0, 1)
-        snakeLength = snakeBody.length
-        scoreElem.innerText = snakeLength >= 1 ? `Score: ${snakeLength - 1}` : "Score: 0"
+    if (state.snake.snakeBody.length >= 1) {
+        state.snake.snakeBody.splice(0, 1)
+        state.snake.snakeLength = state.snake.snakeBody.length
+        scoreElem.innerText = state.snake.snakeLength >= 1 ? `Score: ${state.snake.snakeLength - 1}` : "Score: 0"
     }
 }
 
@@ -656,9 +581,9 @@ function updateBoard(context) {
     context.fillStyle = "black"
     context.fillRect(0, 0, context.canvas.width, context.canvas.height)
 
-    const poisonCount = (Math.floor((snakeBody.length) / 2) >= 1) ? Math.ceil((snakeBody.length) / 2) : 0
+    const poisonCount = (Math.floor((state.snake.snakeBody.length) / 2) >= 1) ? Math.ceil((state.snake.snakeBody.length) / 2) : 0
 
-    if (!gameStarted) {
+    if (!state.game.gameStarted) {
 
             context.drawImage(
                 C.startGameImg,
@@ -669,31 +594,31 @@ function updateBoard(context) {
             )
 
         
-        pacmanFrameTick++
-        if (pacmanFrameTick >= C.PACMAN_DELAY) {
-            pacmanFrame = (pacmanFrame + 1) % C.PACMAN_FRAMES
-            pacmanFrameTick = 0
+        state.tickers.pacmanFrameTick++
+        if (state.tickers.pacmanFrameTick >= C.PACMAN_DELAY) {
+            state.frames.pacmanFrame = (state.frames.pacmanFrame + 1) % C.PACMAN_FRAMES
+            state.tickers.pacmanFrameTick = 0
         }
 
         drawFoodBox(context)
         drawSnake(context)
-        drawGhost(context, ghosts.at(0))
-        cakes.forEach(cake => drawCake(context, cake))
+        drawGhost(context, state.ghosts.at(0))
+        state.cakes.forEach(cake => drawCake(context, cake))
     } else {
 
 
 
-        if (gameOver) {
+        if (state.game.gameOver) {
 
-            gameoverFrameTick++
-            if (gameoverFrameTick >= C.GAMEOVER_DELAY) {
-                gameoverFrame = (gameoverFrame + 1) % C.GAMEOVER_FRAMES
-                gameoverFrameTick = 0
+            state.tickers.gameoverFrameTick++
+            if (state.tickers.gameoverFrameTick >= C.GAMEOVER_DELAY) {
+                state.frames.gameoverFrame = (state.frames.gameoverFrame + 1) % C.GAMEOVER_FRAMES
+                state.tickers.gameoverFrameTick = 0
             }
 
             context.drawImage(
                 C.gameOverImg,
-                gameoverFrame * 500, 0,
+                state.frames.gameoverFrame * 500, 0,
                 500, 500,
                 0, 0,
                 context.canvas.width, context.canvas.height
@@ -701,58 +626,58 @@ function updateBoard(context) {
 
             return
 
-        } else if (pauseBeforeBoss) {
-            pauseBossFrameTick++
-            if (pauseBossFrameTick >= C.PAUSE_BOSS_DELAY) {
-                pauseBossFrame = (pauseBossFrame + 1) % C.PAUSE_BOSS_FRAMES
-                pauseBossFrameTick = 0
+        } else if (state.game.pauseBeforeBoss) {
+            state.tickers.pauseBossFrameTick++
+            if (state.tickers.pauseBossFrameTick >= C.PAUSE_BOSS_DELAY) {
+                state.frames.pauseBossFrame = (state.frames.pauseBossFrame + 1) % C.PAUSE_BOSS_FRAMES
+                state.tickers.pauseBossFrameTick = 0
             }
 
             context.drawImage(
                 C.pauseBossImg,
-                pauseBossFrame * 500, 0,
+                state.frames.pauseBossFrame * 500, 0,
                 500, 500,
                 0, 0,
                 context.canvas.width, context.canvas.height
             )
-            pauseBeforeBossTick++
+            state.tickers.pauseBeforeBossTick++
             drawFoodBox(context)
             drawSnake(context)
-            ghosts.forEach(ghost => drawGhost(context, ghost))
-            cakes.forEach(cake => drawCake(context, cake))
-            if (pauseBeforeBossTick >= C.PAUSE_BEFORE_BOSS_TICKS) {
-                pauseBeforeBoss = false
-                pauseBeforeBossTick = 0
+            state.ghosts.forEach(ghost => drawGhost(context, ghost))
+            state.cakes.forEach(cake => drawCake(context, cake))
+            if (state.tickers.pauseBeforeBossTick >= C.PAUSE_BEFORE_BOSS_TICKS) {
+                state.game.pauseBeforeBoss = false
+                state.tickers.pauseBeforeBossTick = 0
                 startBossStage()
             }
         }
         else {
 
-            if (isBossStage) {
+            if (state.game.isBossStage) {
 
-                bossFrameTick++
-                if (bossFrameTick >= C.BOSS_DELAY) {
-                    bossFrame = (bossFrame + 1) % C.BOSS_FRAMES
-                    bossFrameTick = 0
+                state.tickers.bossFrameTick++
+                if (state.tickers.bossFrameTick >= C.BOSS_DELAY) {
+                    state.frames.bossFrame = (state.frames.bossFrame + 1) % C.BOSS_FRAMES
+                    state.tickers.bossFrameTick = 0
                 }
 
                 context.drawImage(
                     C.bossImg,
-                    bossFrame * 500, 0,
+                    state.frames.bossFrame * 500, 0,
                     500, 500,
                     0, 0,
                     context.canvas.width, context.canvas.height
                 )
 
-                bossStartTick++
-                if (bossStartTick > C.BOSS_START_SAFE_TICKS) {
-                    tailCuttingTick++
-                    if (tailCuttingTick >= C.TAIL_CUTTING_DELAY) {
-                        poisonedBossTick++
-                        if (poisonedBossTick >= C.POISONED_BOSS_TICKS) {
+                state.tickers.bossStartTick++
+                if (state.tickers.bossStartTick > C.BOSS_START_SAFE_TICKS) {
+                    state.tickers.tailCuttingTick++
+                    if (state.tickers.tailCuttingTick >= C.TAIL_CUTTING_DELAY) {
+                        state.tickers.poisonedBossTick++
+                        if (state.tickers.poisonedBossTick >= C.POISONED_BOSS_TICKS) {
                             cutTail()
-                            poisonedBossTick = 0
-                            tailCuttingTick = 0
+                            state.tickers.poisonedBossTick = 0
+                            state.tickers.tailCuttingTick = 0
                         }
                     }
                 }
@@ -760,56 +685,56 @@ function updateBoard(context) {
 
 
 
-                if (poisoned) {
-                    poisonedTick++
+                if (state.snake.poisoned) {
+                    state.tickers.poisonedTick++
 
-                    if (poisonedTick >= C.POISONED_TICKS) {
-                        poisoned = false
-                        poisonedTick = 0
+                    if (state.tickers.poisonedTick >= C.POISONED_TICKS) {
+                        state.snake.poisoned = false
+                        state.tickers.poisonedTick = 0
 
-                        snakeBody.splice(0, poisonCount)
-                        snakeLength = snakeBody.length
+                        state.snake.snakeBody.splice(0, poisonCount)
+                        state.snake.snakeLength = state.snake.snakeBody.length
                     }
                 }
 
-                if (snakeLength === 0) {
-                    gameOver = true
-                    gameOverStartTime = Date.now()
+                if (state.snake.snakeLength === 0) {
+                    state.game.gameOver = true
+                    state.game.gameOverStartTime = Date.now()
                 }
             }
 
 
-            if (nextDirection != null) {
-                curDirection = nextDirection
+            if (state.snake.nextDirection != null) {
+                state.snake.curDirection = state.snake.nextDirection
             }
 
 
-            if (curDirection === "Up") {
-                speedX = 0
-                speedY = -1
+            if (state.snake.curDirection === "Up") {
+                state.snake.speedX = 0
+                state.snake.speedY = -1
             }
-            if (curDirection === "Down") {
-                speedX = 0
-                speedY = 1
+            if (state.snake.curDirection === "Down") {
+                state.snake.speedX = 0
+                state.snake.speedY = 1
             }
-            if (curDirection === "Left") {
-                speedX = -1
-                speedY = 0
+            if (state.snake.curDirection === "Left") {
+                state.snake.speedX = -1
+                state.snake.speedY = 0
             }
-            if (curDirection === "Right") {
-                speedX = 1
-                speedY = 0
+            if (state.snake.curDirection === "Right") {
+                state.snake.speedX = 1
+                state.snake.speedY = 0
             }
 
-            directionLocked = false
+            state.snake.directionLocked = false
 
-            const prevSnakeX = snakeX
-            const prevSnakeY = snakeY
-            snakeX += speedX
-            snakeY += speedY
+            const prevSnakeX = state.snake.snakeX
+            const prevSnakeY = state.snake.snakeY
+            state.snake.snakeX += state.snake.speedX
+            state.snake.snakeY += state.snake.speedY
 
-            if (catchYourTail === false && snakeBody.length > 1 && snakeX === previousTailX && snakeY === previousTailY) {
-                catchYourTail = true
+            if (state.achievements.catchYourTail === false && state.snake.snakeBody.length > 1 && state.snake.snakeX === state.snake.previousTailX && state.snake.snakeY === state.snake.previousTailY) {
+                state.achievements.catchYourTail = true
                 completeAchievement(catchYourTailElem)
                 try {
                     const achRaw = localStorage.getItem("achievements")
@@ -822,89 +747,89 @@ function updateBoard(context) {
             }
 
 
-            if (snakeX < 0) {
-                snakeX = C.COLS - 1
+            if (state.snake.snakeX < 0) {
+                state.snake.snakeX = C.COLS - 1
             }
-            if (snakeX > (C.COLS - 1)) {
-                snakeX = 0
+            if (state.snake.snakeX > (C.COLS - 1)) {
+                state.snake.snakeX = 0
             }
-            if (snakeY < 0) {
-                snakeY = C.ROWS - 1
+            if (state.snake.snakeY < 0) {
+                state.snake.snakeY = C.ROWS - 1
             }
-            if (snakeY > (C.ROWS - 1)) {
-                snakeY = 0
-            }
-
-            snakeBody.push([snakeX, snakeY, curDirection])
-
-            if (snakeBody.length > snakeLength) {
-                snakeBody.shift()
+            if (state.snake.snakeY > (C.ROWS - 1)) {
+                state.snake.snakeY = 0
             }
 
-            previousTailX = snakeBody[0][0]
-            previousTailY = snakeBody[0][1]
+            state.snake.snakeBody.push([state.snake.snakeX, state.snake.snakeY, state.snake.curDirection])
 
-            for (let i = 0; i < snakeBody.length - 1; i++) {
-                if (snakeX == snakeBody[i][0] && snakeY == snakeBody[i][1]) {
-                    gameOver = true
-                    gameOverStartTime = Date.now()
+            if (state.snake.snakeBody.length > state.snake.snakeLength) {
+                state.snake.snakeBody.shift()
+            }
+
+            state.snake.previousTailX = state.snake.snakeBody[0][0]
+            state.snake.previousTailY = state.snake.snakeBody[0][1]
+
+            for (let i = 0; i < state.snake.snakeBody.length - 1; i++) {
+                if (state.snake.snakeX == state.snake.snakeBody[i][0] && state.snake.snakeY == state.snake.snakeBody[i][1]) {
+                    state.game.gameOver = true
+                    state.game.gameOverStartTime = Date.now()
                 }
             }
 
-            if (strongTick > 0) {
-                strongTick--
+            if (state.tickers.strongTick > 0) {
+                state.tickers.strongTick--
             }
-            if (strongTick == 0) {
-                isPacmanStrong = false
-                hungerCounter = 0
+            if (state.tickers.strongTick == 0) {
+                state.snake.isPacmanStrong = false
+                state.achievements.hungerCounter = 0
             }
 
-            if (foodX != null && foodY != null && snakeX == foodX && snakeY == foodY) {
+            if (state.food.foodX != null && state.food.foodY != null && state.snake.snakeX == state.food.foodX && state.snake.snakeY == state.food.foodY) {
                 tryCakeAppear()
                 newFoodPos()
-                snakeLength += 1
-                isPacmanStrong = true
-                hungerCounter += 1
-                strongTick = C.STRONG_TICKS
-                if (poisoned)
-                    scoreElem.innerText = `Score: ${snakeLength - poisonCount - 1}`
+                state.snake.snakeLength += 1
+                state.snake.isPacmanStrong = true
+                state.achievements.hungerCounter += 1
+                state.tickers.strongTick = C.STRONG_TICKS
+                if (state.snake.poisoned)
+                    scoreElem.innerText = `Score: ${state.snake.snakeLength - poisonCount - 1}`
                 else
-                    scoreElem.innerText = `Score: ${snakeLength - 1}`
+                    scoreElem.innerText = `Score: ${state.snake.snakeLength - 1}`
             }
 
 
-            const eatenCakeIndex = cakes.findIndex(
-                cake => cake.x === snakeX && cake.y === snakeY
+            const eatenCakeIndex = state.cakes.findIndex(
+                cake => cake.x === state.snake.snakeX && cake.y === state.snake.snakeY
             )
 
             if (eatenCakeIndex !== -1) {
-                poisoned = true
-                poisonedTick = 0
-                scoreElem.innerText = `Score: ${snakeLength - poisonCount - 1}`
-                cakes.splice(eatenCakeIndex, 1)
+                state.snake.poisoned = true
+                state.tickers.poisonedTick = 0
+                scoreElem.innerText = `Score: ${state.snake.snakeLength - poisonCount - 1}`
+                state.cakes.splice(eatenCakeIndex, 1)
             }
 
-            if (poisoned) {
-                poisonedTick++
+            if (state.snake.poisoned) {
+                state.tickers.poisonedTick++
 
-                if (poisonedTick >= C.POISONED_TICKS) {
-                    poisoned = false
-                    poisonedTick = 0
+                if (state.tickers.poisonedTick >= C.POISONED_TICKS) {
+                    state.snake.poisoned = false
+                    state.tickers.poisonedTick = 0
 
-                    snakeBody.splice(0, poisonCount)
-                    snakeLength = snakeBody.length
+                    state.snake.snakeBody.splice(0, poisonCount)
+                    state.snake.snakeLength = state.snake.snakeBody.length
                 }
             }
 
-            pacmanFrameTick++
-            if (pacmanFrameTick >= C.PACMAN_DELAY) {
-                pacmanFrame = (pacmanFrame + 1) % C.PACMAN_FRAMES
-                pacmanFrameTick = 0
+            state.tickers.pacmanFrameTick++
+            if (state.tickers.pacmanFrameTick >= C.PACMAN_DELAY) {
+                state.frames.pacmanFrame = (state.frames.pacmanFrame + 1) % C.PACMAN_FRAMES
+                state.tickers.pacmanFrameTick = 0
             }
 
 
 
-            ghosts.forEach(ghost => {
+            state.ghosts.forEach(ghost => {
 
                 ghost.age++
                 if ((ghost.x <= 0 && ghost.y <= 0) ||
@@ -929,35 +854,35 @@ function updateBoard(context) {
                     const nearestCake = getNearestCake(ghost)
                     let ghostTargetsCake = false
                     if (nearestCake != null) {
-                        if (ghosts.length == 1) {
-                            if ((ghosts[0].curDir == "Up" && ghosts[0].y == nearestCake.y + 2) ||
-                                (ghosts[0].curDir == "Down" && ghosts[0].y == nearestCake.y - 2) ||
-                                (ghosts[0].curDir == "Right" && ghosts[0].x == nearestCake.x - 2) ||
-                                (ghosts[0].curDir == "Left" && ghosts[0].x == nearestCake.x + 2)
+                        if (state.ghosts.length == 1) {
+                            if ((state.ghosts[0].curDir == "Up" && state.ghosts[0].y == nearestCake.y + 2) ||
+                                (state.ghosts[0].curDir == "Down" && state.ghosts[0].y == nearestCake.y - 2) ||
+                                (state.ghosts[0].curDir == "Right" && state.ghosts[0].x == nearestCake.x - 2) ||
+                                (state.ghosts[0].curDir == "Left" && state.ghosts[0].x == nearestCake.x + 2)
                             )
                                 changeGhostDirection(ghost)
-                        } else if (nearestCake && (Math.random() <= ghostChanceToEatCake)) {
+                        } else if (nearestCake && (Math.random() <= state.chances.ghostChanceToEatCake)) {
                             ghostGonnaEatACake(ghost, nearestCake)
                             ghostTargetsCake = true
 
                         }
                         if (ghostTargetsCake && ghost.x === nearestCake.x && ghost.y === nearestCake.y && ghost.age > 10) {
-                            if (ghosts.length > 1) {
+                            if (state.ghosts.length > 1) {
                                 ghostEatsCake(ghost, nearestCake)
                             }
                         }
 
                     }
 
-                    if (foodX != null && foodY != null && ghost.x == foodX && ghost.y == foodY) {
+                    if (state.food.foodX != null && state.food.foodY != null && ghost.x == state.food.foodX && ghost.y == state.food.foodY) {
                         newFoodPos()
-                        if (Math.random() <= ghostChance) {
+                        if (Math.random() <= state.chances.ghostChance) {
                             const gh = spawnGhost({ x: ghost.x, y: ghost.y })
                             giveGhostSpeed(gh)
-                            if (ghosts.length >= C.GHOSTS_BOSS_AMOUNT) {
-                                pauseBeforeBoss = true
+                            if (state.ghosts.length >= C.GHOSTS_BOSS_AMOUNT) {
+                                state.game.pauseBeforeBoss = true
                             }
-                            ghostChance /= 2
+                            state.chances.ghostChance /= 2
                         }
                     }
                 }
@@ -972,8 +897,8 @@ function updateBoard(context) {
                 const prevGhostY = ghost.y
 
                 const pacmanHitsGhostFromSide =
-                    snakeX === prevGhostX &&
-                    snakeY === prevGhostY &&
+                    state.snake.snakeX === prevGhostX &&
+                    state.snake.snakeY === prevGhostY &&
                     !(ghost.x === prevSnakeX && ghost.y === prevSnakeY)
 
                 ghost.x += ghost.ghostSpeedX
@@ -981,30 +906,30 @@ function updateBoard(context) {
 
 
                 const crossed =
-                    snakeX === prevGhostX &&
-                    snakeY === prevGhostY &&
+                    state.snake.snakeX === prevGhostX &&
+                    state.snake.snakeY === prevGhostY &&
                     ghost.x === prevSnakeX &&
                     ghost.y === prevSnakeY
 
-                const sameCell = snakeX === ghost.x && snakeY === ghost.y
+                const sameCell = state.snake.snakeX === ghost.x && state.snake.snakeY === ghost.y
 
                 if (sameCell || crossed || pacmanHitsGhostFromSide) {
-                    if (!isPacmanStrong && !unlimitedPower) {
-                        gameOver = true
-                        gameOverStartTime = Date.now()
+                    if (!state.snake.isPacmanStrong && !state.snake.unlimitedPower) {
+                        state.game.gameOver = true
+                        state.game.gameOverStartTime = Date.now()
 
                     } else {
-                        snakeLength += 5
-                        pacifistFailed = true
+                        state.snake.snakeLength += 5
+                        state.achievements.pacifistFailed = true
                         failAchievement(pacifistElem)
-                        if (poisoned)
-                            scoreElem.innerText = `Score: ${snakeLength - poisonCount - 1}`
+                        if (state.snake.poisoned)
+                            scoreElem.innerText = `Score: ${state.snake.snakeLength - poisonCount - 1}`
                         else
-                            scoreElem.innerText = `Score: ${snakeLength - 1}`
-                        ghosts = ghosts.filter(g => g.id !== ghost.id)
-                        ghostChance *= 2
-                        if (ghosts.length === 0 && isBossStage) {
-                            ghostHunter = true
+                            scoreElem.innerText = `Score: ${state.snake.snakeLength - 1}`
+                        state.ghosts = state.ghosts.filter(g => g.id !== ghost.id)
+                        state.chances.ghostChance *= 2
+                        if (state.ghosts.length === 0 && state.game.isBossStage) {
+                            state.achievements.ghostHunter = true
                             ghostHunterElem = document.getElementById("ghostHunter")
                             completeAchievement(ghostHunterElem)
                             try {
@@ -1022,18 +947,18 @@ function updateBoard(context) {
                 }
             });
 
-            if (ghosts.length === 0 && !isBossStage) {
+            if (state.ghosts.length === 0 && !state.game.isBossStage) {
                 tryGhostAppear()
             }
 
-            if ((snakeLength - 1) > maxScore) {
-                maxScore = snakeLength - 1
-                maxScoreElem.innerText = `Max score: ${maxScore}`
-                localStorage.setItem("max_score", maxScore)
+            if ((state.snake.snakeLength - 1) > state.game.maxScore) {
+                state.game.maxScore = state.snake.snakeLength - 1
+                maxScoreElem.innerText = `Max score: ${state.game.maxScore}`
+                localStorage.setItem("max_score", state.game.maxScore)
             }
 
-            if (hungerCounter >= C.HUNGER_AMOUNT) {
-                hunger = true
+            if (state.achievements.hungerCounter >= C.HUNGER_AMOUNT) {
+                state.achievements.hunger = true
                 completeAchievement(hungerElem)
                 try {
                     const achRaw = localStorage.getItem("achievements")
@@ -1045,8 +970,8 @@ function updateBoard(context) {
                 }
             }
 
-            if ((snakeBody.length - 1) >= C.PACIFIST_AMOUNT && !pacifistFailed && !pacifist) {
-                pacifist = true
+            if ((state.snake.snakeBody.length - 1) >= C.PACIFIST_AMOUNT && !state.achievements.pacifistFailed && !state.achievements.pacifist) {
+                state.achievements.pacifist = true
                 completeAchievement(pacifistElem)
                 try {
                     const achRaw = localStorage.getItem("achievements")
@@ -1060,7 +985,7 @@ function updateBoard(context) {
 
             drawFoodBox(context)
             drawSnake(context)
-            cakes.forEach(cake => drawCake(context, cake))
+            state.cakes.forEach(cake => drawCake(context, cake))
         }
 
     }
@@ -1068,13 +993,13 @@ function updateBoard(context) {
 
 
 function tryCakeAppear() {
-    if (!cakeSpawnProhibited && Math.random() < cakeChance) {
+    if (!state.game.cakeSpawnProhibited && Math.random() < state.chances.cakeChance) {
         spawnCake()
     }
 }
 
 function tryGhostAppear() {
-    if (!ghostSpawnProhibited && Math.random() < ghostChance) {
+    if (!state.game.ghostSpawnProhibited && Math.random() < state.chances.ghostChance) {
         const gh = spawnGhost(randomizeCell())
         giveGhostSpeed(gh)
     }
@@ -1097,9 +1022,9 @@ function isOpposite(a, b) {
 }
 
 function handlePressedKey(e) {
-    if (!gameStarted) startGame()
-    if (gameOver) {
-        if (Date.now() - gameOverStartTime < C.GAMEOVER_BLOCK_DURATION) {
+    if (!state.game.gameStarted) startGame()
+    if (state.game.gameOver) {
+        if (Date.now() - state.game.gameOverStartTime < C.GAMEOVER_BLOCK_DURATION) {
             return
         }
 
@@ -1107,7 +1032,7 @@ function handlePressedKey(e) {
         startGame()
         return
     }
-    if (directionLocked) return
+    if (state.snake.directionLocked) return
 
     let newDir = null
 
@@ -1118,10 +1043,10 @@ function handlePressedKey(e) {
 
     if (!newDir) return
 
-    if (isOpposite(curDirection, newDir)) return
+    if (isOpposite(state.snake.curDirection, newDir)) return
 
-    nextDirection = newDir
-    directionLocked = true
+    state.snake.nextDirection = newDir
+    state.snake.directionLocked = true
 }
 
 function updateSliderColor(value) {
@@ -1180,24 +1105,24 @@ window.onload = function () {
     maxScoreElem = document.getElementById("maxScoreText")
 
     const lastMaxScore = Number(localStorage.getItem("max_score"))
-    maxScore = Number.isFinite(lastMaxScore) ? lastMaxScore : 0
-    maxScoreElem.innerText = `Max score: ${maxScore}`
+    state.game.maxScore = Number.isFinite(lastMaxScore) ? lastMaxScore : 0
+    maxScoreElem.innerText = `Max score: ${state.game.maxScore}`
 
     rulesElem = document.getElementById("Rules")
 
     try {
         const achievements = localStorage.getItem("achievements")
         achObj = JSON.parse(achievements) ?? {}
-        catchYourTail = achObj?.catchYourTail ?? false
-        pacifist = achObj?.pacifist ?? false
-        hunger = achObj?.hunger ?? false
-        ghostHunter = achObj?.ghostHunter ?? false
+        state.achievements.catchYourTail = achObj?.catchYourTail ?? false
+        state.achievements.pacifist = achObj?.pacifist ?? false
+        state.achievements.hunger = achObj?.hunger ?? false
+        state.achievements.ghostHunter = achObj?.ghostHunter ?? false
     }
     catch {
-        catchYourTail = false
-        pacifist = false
-        hunger = false
-        ghostHunter = false
+        state.achievements.catchYourTail = false
+        state.achievements.pacifist = false
+        state.achievements.hunger = false
+        state.achievements.ghostHunter = false
     }
 
 
@@ -1210,19 +1135,19 @@ window.onload = function () {
 
 
 
-    if (catchYourTail) {
+    if (state.achievements.catchYourTail) {
         catchYourTailElem.classList.add("achDone")
         achievementList.append(catchYourTailElem)
     }
-    if (pacifist) {
+    if (state.achievements.pacifist) {
         pacifistElem.classList.add("achDone")
         achievementList.append(pacifistElem)
     }
-    if (hunger) {
+    if (state.achievements.hunger) {
         hungerElem.classList.add("achDone")
         achievementList.append(hungerElem)
     }
-    if (ghostHunter) {
+    if (state.achievements.ghostHunter) {
         ghostHunterElem = document.createElement("div")
         ghostHunterElem.className = "boss"
         ghostHunterElem.id = "ghostHunter"
@@ -1245,13 +1170,13 @@ window.onload = function () {
 
     const soundBtn = document.getElementById("soundBtn")
     document.addEventListener("keydown", () => {
-        if (!musicStarted) {
+        if (!state.music.musicStarted) {
             C.bgMusic.play().catch(() => { })
-            musicStarted = true
+            state.music.musicStarted = true
         }
     })
     const savedVolume = Number(localStorage.getItem("game_volume"))
-    lastVolume = Number.isFinite(savedVolume) ? savedVolume : 0.4
+    state.music.lastVolume = Number.isFinite(savedVolume) ? savedVolume : 0.4
     C.bgMusic.muted = localStorage.getItem("game_muted") === "true"
     if (C.bgMusic.muted) {
         soundBtn.classList.toggle("muted", C.bgMusic.muted)
@@ -1259,17 +1184,17 @@ window.onload = function () {
 
     }
     volumeSlider = document.getElementById("volumeSlider")
-    volumeSlider.value = lastVolume
+    volumeSlider.value = state.music.lastVolume
     C.bgMusic.volume = volumeSlider.value
     updateSliderColor(volumeSlider.value)
 
     soundBtn.addEventListener("click", () => {
         if (!C.bgMusic.muted) {
             C.bgMusic.muted = true
-            lastVolume = C.bgMusic.volume
+            state.music.lastVolume = C.bgMusic.volume
         } else {
             C.bgMusic.muted = false
-            C.bgMusic.volume = lastVolume ?? localStorage.getItem("game_volume") ?? 1
+            C.bgMusic.volume = state.music.lastVolume ?? localStorage.getItem("game_volume") ?? 1
             volumeSlider.value = C.bgMusic.volume
         }
 
@@ -1285,11 +1210,11 @@ window.onload = function () {
 
     volumeSlider.addEventListener("input", () => {
         C.bgMusic.volume = volumeSlider.value
-        lastVolume = C.bgMusic.volume
+        state.music.lastVolume = C.bgMusic.volume
 
         updateSliderColor(volumeSlider.value)
 
-        localStorage.setItem("game_volume", String(lastVolume))
+        localStorage.setItem("game_volume", String(state.music.lastVolume))
     })
 
     setNewGame()
