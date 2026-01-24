@@ -1,6 +1,8 @@
 import * as C from "./Src/Constants.js";
 import { state } from "./Src/State.js"
 import { ghostMovement, ghostActions, drawGhost } from "./Src/Ghost.js"
+import { drawFoodBox, newFoodPos } from "./Src/Food.js"
+import { randomizeCell } from "./Src/Utils.js";
 
 let scoreElem
 let maxScoreElem
@@ -110,36 +112,36 @@ function spawnGhost({ x, y }) {
 }
 
 
-function drawFoodBox(context) {
-    if (state.food.foodX != null && state.food.foodY != null) {
-        context.drawImage(
-            C.foodImg,
-            state.food.foodX * C.CELLSIZE, state.food.foodY * C.CELLSIZE, C.CELLSIZE, C.CELLSIZE,
-        )
-    }
-    else return
+// function drawFoodBox(context) {
+//     if (state.food.foodX != null && state.food.foodY != null) {
+//         context.drawImage(
+//             C.foodImg,
+//             state.food.foodX * C.CELLSIZE, state.food.foodY * C.CELLSIZE, C.CELLSIZE, C.CELLSIZE,
+//         )
+//     }
+//     else return
 
-}
+// }
 
-function newFoodPos() {
-    if (!state.game.foodSpawnProhibited) {
-        let x, y
-        do {
-            const pos = randomizeCell()
-            x = pos.x
-            y = pos.y
-        } while ((x == 0 && y == 0) ||
-        (x == (C.COLS - 1) && y == 0) ||
-        (x == 0 && y == (C.ROWS - 1)) ||
-        (x == (C.COLS - 1) && y == (C.ROWS - 1)) || state.cakes.some(cake => cake.x == x && cake.y == y))
-        state.food.foodX = x
-        state.food.foodY = y
-    } else {
-        state.food.foodX = null
-        state.food.foodY = null
-    }
+// function newFoodPos() {
+//     if (!state.game.foodSpawnProhibited) {
+//         let x, y
+//         do {
+//             const pos = randomizeCell()
+//             x = pos.x
+//             y = pos.y
+//         } while ((x == 0 && y == 0) ||
+//         (x == (C.COLS - 1) && y == 0) ||
+//         (x == 0 && y == (C.ROWS - 1)) ||
+//         (x == (C.COLS - 1) && y == (C.ROWS - 1)) || state.cakes.some(cake => cake.x == x && cake.y == y))
+//         state.food.foodX = x
+//         state.food.foodY = y
+//     } else {
+//         state.food.foodX = null
+//         state.food.foodY = null
+//     }
 
-}
+// }
 
 
 function drawCake(context, cake) {
@@ -873,12 +875,12 @@ function tryGhostAppear() {
     }
 }
 
-function randomizeCell() {
-    const x = Math.floor(Math.random() * (C.ROWS - 1)) + 1
-    const y = Math.floor(Math.random() * (C.COLS - 1)) + 1
+// function randomizeCell() {
+//     const x = Math.floor(Math.random() * (C.ROWS - 1)) + 1
+//     const y = Math.floor(Math.random() * (C.COLS - 1)) + 1
 
-    return { x, y }
-}
+//     return { x, y }
+// }
 
 function isOpposite(a, b) {
     return (
