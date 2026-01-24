@@ -2,7 +2,7 @@ import * as C from "./Src/Constants.js";
 import { state } from "./Src/State.js"
 import { ghostMovement, ghostActions, drawGhost, spawnGhost, tryGhostAppear } from "./Src/Ghost.js"
 import { drawFoodBox, newFoodPos } from "./Src/Food.js"
-import { randomizeCell } from "./Src/Utils.js"
+import { randomizeCell, isOpposite } from "./Src/Utils.js"
 import { drawCake, tryCakeAppear } from "./Src/Cake.js"
 import {completeAchievement, failAchievement} from "./Src/Achievement.js"
 
@@ -783,15 +783,6 @@ function updateBoard(context) {
 }
 
 
-function isOpposite(a, b) {
-    return (
-        (a === "Up" && b === "Down") ||
-        (a === "Down" && b === "Up") ||
-        (a === "Left" && b === "Right") ||
-        (a === "Right" && b === "Left")
-    )
-}
-
 function handlePressedKey(e) {
     if (!state.game.gameStarted) startGame()
     if (state.game.gameOver) {
@@ -826,25 +817,6 @@ function updateSliderColor(value) {
     volumeSlider.style.setProperty("--fill", `${value * 100}%`)
 }
 
-// function completeAchievement(elem) {
-//     if (!elem || !achievementList) return
-//     if (elem.classList.contains("achDone")) return
-
-//     elem.classList.add("achFlash")
-
-//     setTimeout(() => {
-//         elem.classList.remove("achFlash")
-//         elem.classList.add("achDone")
-//         achievementList.append(elem)
-//     }, 1000)
-// }
-
-// function failAchievement(elem) {
-//     if (!elem || !achievementList) return
-//     if (elem.classList.contains("achDone")) return
-
-//     elem.classList.add("failed")
-// }
 
 window.onload = function () {
     window.addEventListener(

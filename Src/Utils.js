@@ -7,3 +7,13 @@ export function randomizeCell() {
 
     return { x, y }
 }
+
+export function isOpposite(a, b) {
+    return (
+        (a === "Up" && b === "Down") ||
+        (a === "Down" && b === "Up") ||
+        (a === "Left" && b === "Right") ||
+        (a === "Right" && b === "Left")
+    )
+}
+
