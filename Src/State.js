@@ -39,7 +39,7 @@ export const state = {
     },
 
     music: {
-        lastVolume: 100,
+        lastVolume: 0.4,
         musicStarted: false
     },
 

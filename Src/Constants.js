@@ -67,3 +67,25 @@ ghostImg.src = "Src/Assets/ghost.png"
 
 export const ghostRedImg = new Image()
 ghostRedImg.src = "Src/Assets/ghostRed.png"
+
+let scoreElem = document.getElementById("scoreText")
+let maxScoreElem = document.getElementById("maxScoreText")
+let catchYourTailElem = document.getElementById("catchYourTail")
+let hungerElem = document.getElementById("hunger")
+let pacifistElem = document.getElementById("pacifist")
+let ghostHunterElem
+let achievementListElem = document.getElementById("achievementList")
+let volumeSliderElem = document.getElementById("volumeSlider")
+let restartBtnElem = document.getElementById("restartBtn")
+
+export const elems = {
+ scoreElem,
+ maxScoreElem,
+ catchYourTailElem,
+ hungerElem,
+ pacifistElem,
+ ghostHunterElem,
+ achievementListElem,
+ volumeSliderElem,
+ restartBtnElem,
+}

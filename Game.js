@@ -2,28 +2,16 @@ import * as C from "./Src/Constants.js";
 import { state } from "./Src/State.js"
 import { ghostMovement, ghostActions, drawGhost, spawnGhost, tryGhostAppear } from "./Src/Ghost.js"
 import { drawFoodBox, newFoodPos } from "./Src/Food.js"
-import { randomizeCell, isOpposite } from "./Src/Utils.js"
+import { randomizeCell, isOpposite, putBossRules, putNormalRules } from "./Src/Utils.js"
 import { drawCake, tryCakeAppear } from "./Src/Cake.js"
-import {completeAchievement, failAchievement} from "./Src/Achievement.js"
+import { completeAchievement, failAchievement } from "./Src/Achievement.js"
 import { drawSnake, cutTail } from "./Src/Snake.js"
-
-let scoreElem
-let maxScoreElem
-
-let catchYourTailElem
-let hungerElem
-let pacifistElem
-let ghostHunterElem
-let achievementList
-
-let volumeSlider
-
 
 
 function setNewGame() {
     state.game.gameStarted = false
-    scoreElem = document.getElementById("scoreText")
-    scoreElem.innerText = "Score: 0"
+    C.elems.scoreElem = document.getElementById("scoreText")
+    C.elems.scoreElem.innerText = "Score: 0"
     state.snake.speedX = 0
     state.snake.speedY = 0
     state.snake.snakeX = 5
@@ -41,7 +29,6 @@ function setNewGame() {
     state.chances.ghostChance = 0.4
     state.snake.isPacmanStrong = false
     state.game.gameOverStartTime = 0
-
     state.game.isBossStage = false
     state.game.foodSpawnProhibited = false
     state.game.cakeSpawnProhibited = false
@@ -52,11 +39,10 @@ function setNewGame() {
 
     state.achievements.hungerCounter = 0
     state.achievements.pacifistFailed = false
-    pacifistElem.classList.remove("failed")
+    C.elems.pacifistElem.classList.remove("failed")
     tryCakeAppear()
     spawnGhost(randomizeCell())
-
-
+    
     const { x: startSnakeX, y: startSnakeY } = randomizeCell()
     state.snake.snakeX = startSnakeX
     state.snake.snakeY = startSnakeY
@@ -65,7 +51,6 @@ function setNewGame() {
     const { x: startFoodX, y: startFoodY } = randomizeCell()
     state.food.foodX = startFoodX
     state.food.foodY = startFoodY
-
 }
 
 function startGame() {
@@ -73,11 +58,10 @@ function startGame() {
     state.ghosts.forEach(gh => ghostMovement.giveGhostSpeed(gh))
 }
 
-
-
 function startBossStage() {
     state.food.foodX = null
     state.food.foodY = null
+    state.cakes.length = 0
 
     state.tickers.bossStartTick = 0
     state.tickers.tailCuttingTick = 0
@@ -87,52 +71,10 @@ function startBossStage() {
     state.game.cakeSpawnProhibited = true
     state.game.ghostSpawnProhibited = true
     state.snake.unlimitedPower = true
-    state.cakes.length = 0
 
-    const newRules = [
-        "▶ Eat eat eat eat eat eat.",
-        "▶ Eat eat eat eat.",
-        "▶ Eat eat eat eat eat eat eat eat eat eat eat.",
-        "▶ Eat eat eat eat eat eat eat.",
-        "▶ Eat eat eat eat eat eat eat eat eat eat eat eat eat eat eat eat eat.",
-        "▶ Eat eat eat eat eat eat eat eat eat eat eat eat eat eat eat.",
-        "▶ Eat eat eat eat eat eat eat eat eat eat eat eat eat eat eat eat eat eat eat eat eat eat eat.",
-        "▶ Eat eat eat eat eat eat eat eat eat eat eat.",
-        "▶ Eat eat eat eat eat eat eat.",
-        "▶ Eat eat eat eat eat eat.",
-    ]
-
-    document.querySelectorAll("#Rules p").forEach((rule, i) => {
-        if (newRules[i]) {
-            rule.textContent = newRules[i]
-            rule.style.color = "red"
-        }
-    })
-
-    if (!state.achievements.ghostHunter) {
-        catchYourTailElem.classList.add("hidden")
-        hungerElem.classList.add("hidden")
-        pacifistElem.classList.add("hidden")
-        const ach = document.createElement("div")
-        ach.className = "boss"
-        ach.id = "ghostHunter"
-
-        const h2 = document.createElement("h2")
-        h2.textContent = "Ghostbuster"
-        h2.color = "red"
-
-        const p = document.createElement("p")
-        p.textContent = "Eat them all."
-        p.color = "red"
-
-        ach.append(h2, p)
-
-        ghostHunterElem = ach
-
-        document.getElementById("achievementList").prepend(ghostHunterElem)
-    }
-
+    putNormalRules()
 }
+
 
 function stopBossStage() {
     state.game.isBossStage = false
@@ -140,39 +82,17 @@ function stopBossStage() {
     state.game.cakeSpawnProhibited = false
     state.game.ghostSpawnProhibited = false
     state.snake.unlimitedPower = false
-    catchYourTailElem.classList.remove("hidden")
-    hungerElem.classList.remove("hidden")
-    pacifistElem.classList.remove("hidden")
+    C.elems.catchYourTailElem.classList.remove("hidden")
+    C.elems.hungerElem.classList.remove("hidden")
+    C.elems.pacifistElem.classList.remove("hidden")
+    
     newFoodPos()
+    putBossRules()
 
-    const newRules = [
-        "▶ Use arrows or WASD to move.",
-        "▶ Cherry adds 1 point.",
-        "▶ Cake is poisonous, cuts half of the snakeman.",
-        "▶ Ghosts eat cherries too.",
-        "▶ When a ghost eats a cherry there is a chance to spawn another ghost.",
-        "▶ There is some chance that a ghost will eat a cake and die.",
-        "▶ After eating a cherry the snakeman becomes strong and is able to eat ghosts for some time.",
-        "▶ Weak snakeman dies if tries to eat a ghost.",
-        "▶ An eated ghost adds 5 points.",
-        "▶ Don't let 4 ghosts appear."
-    ]
-
-    document.querySelectorAll("#Rules p").forEach((rule, i) => {
-        if (newRules[i]) {
-            rule.textContent = newRules[i]
-            rule.style.color = "#00FF00"
-            if (i == (newRules.length - 1)) {
-                rule.style.color = "#FF0000"
-            }
-        }
-    })
-
-    ghostHunterElem = document.getElementById("ghostHunter")
-    if (!state.achievements.ghostHunter && ghostHunterElem) {
-        ghostHunterElem.remove()
+    C.elems.ghostHunterElem = document.getElementById("ghostHunter")
+    if (!state.achievements.ghostHunter && C.elems.ghostHunterElem) {
+        C.elems.ghostHunterElem.remove()
     }
-
 }
 
 
@@ -192,7 +112,6 @@ function updateBoard(context) {
             context.canvas.width, context.canvas.height
         )
 
-
         state.tickers.pacmanFrameTick++
         if (state.tickers.pacmanFrameTick >= C.PACMAN_DELAY) {
             state.frames.pacmanFrame = (state.frames.pacmanFrame + 1) % C.PACMAN_FRAMES
@@ -204,8 +123,6 @@ function updateBoard(context) {
         drawGhost(context, state.ghosts.at(0))
         state.cakes.forEach(cake => drawCake(context, cake))
     } else {
-
-
 
         if (state.game.gameOver) {
 
@@ -226,6 +143,7 @@ function updateBoard(context) {
             return
 
         } else if (state.game.pauseBeforeBoss) {
+           
             state.tickers.pauseBossFrameTick++
             if (state.tickers.pauseBossFrameTick >= C.PAUSE_BOSS_DELAY) {
                 state.frames.pauseBossFrame = (state.frames.pauseBossFrame + 1) % C.PAUSE_BOSS_FRAMES
@@ -239,6 +157,7 @@ function updateBoard(context) {
                 0, 0,
                 context.canvas.width, context.canvas.height
             )
+
             state.tickers.pauseBeforeBossTick++
             drawFoodBox(context)
             drawSnake(context)
@@ -280,9 +199,6 @@ function updateBoard(context) {
                         }
                     }
                 }
-
-
-
 
                 if (state.snake.poisoned) {
                     state.tickers.poisonedTick++
@@ -334,7 +250,7 @@ function updateBoard(context) {
 
             if (state.achievements.catchYourTail === false && state.snake.snakeBody.length > 1 && state.snake.snakeX === state.snake.previousTailX && state.snake.snakeY === state.snake.previousTailY) {
                 state.achievements.catchYourTail = true
-                completeAchievement(catchYourTailElem)
+                completeAchievement(C.elems.catchYourTailElem)
                 try {
                     const achRaw = localStorage.getItem("achievements")
                     const ach = achRaw ? JSON.parse(achRaw) : {}
@@ -344,7 +260,6 @@ function updateBoard(context) {
                 catch {
                 }
             }
-
 
             if (state.snake.snakeX < 0) {
                 state.snake.snakeX = C.COLS - 1
@@ -391,9 +306,9 @@ function updateBoard(context) {
                 state.achievements.hungerCounter += 1
                 state.tickers.strongTick = C.STRONG_TICKS
                 if (state.snake.poisoned)
-                    scoreElem.innerText = `Score: ${state.snake.snakeLength - poisonCount - 1}`
+                    C.elems.scoreElem.innerText = `Score: ${state.snake.snakeLength - poisonCount - 1}`
                 else
-                    scoreElem.innerText = `Score: ${state.snake.snakeLength - 1}`
+                    C.elems.scoreElem.innerText = `Score: ${state.snake.snakeLength - 1}`
             }
 
 
@@ -404,7 +319,7 @@ function updateBoard(context) {
             if (eatenCakeIndex !== -1) {
                 state.snake.poisoned = true
                 state.tickers.poisonedTick = 0
-                scoreElem.innerText = `Score: ${state.snake.snakeLength - poisonCount - 1}`
+                C.elems.scoreElem.innerText = `Score: ${state.snake.snakeLength - poisonCount - 1}`
                 state.cakes.splice(eatenCakeIndex, 1)
             }
 
@@ -425,8 +340,6 @@ function updateBoard(context) {
                 state.frames.pacmanFrame = (state.frames.pacmanFrame + 1) % C.PACMAN_FRAMES
                 state.tickers.pacmanFrameTick = 0
             }
-
-
 
             state.ghosts.forEach(ghost => {
 
@@ -520,17 +433,17 @@ function updateBoard(context) {
                     } else {
                         state.snake.snakeLength += 5
                         state.achievements.pacifistFailed = true
-                        failAchievement(pacifistElem)
+                        failAchievement(C.elems.pacifistElem)
                         if (state.snake.poisoned)
-                            scoreElem.innerText = `Score: ${state.snake.snakeLength - poisonCount - 1}`
+                            C.elems.scoreElem.innerText = `Score: ${state.snake.snakeLength - poisonCount - 1}`
                         else
-                            scoreElem.innerText = `Score: ${state.snake.snakeLength - 1}`
+                            C.elems.scoreElem.innerText = `Score: ${state.snake.snakeLength - 1}`
                         state.ghosts = state.ghosts.filter(g => g.id !== ghost.id)
                         state.chances.ghostChance *= 2
                         if (state.ghosts.length === 0 && state.game.isBossStage) {
                             state.achievements.ghostHunter = true
-                            ghostHunterElem = document.getElementById("ghostHunter")
-                            completeAchievement(ghostHunterElem)
+                            C.elems.ghostHunterElem = document.getElementById("ghostHunter")
+                            completeAchievement(C.elems.ghostHunterElem)
                             try {
                                 const achRaw = localStorage.getItem("achievements")
                                 const ach = achRaw ? JSON.parse(achRaw) : {}
@@ -540,7 +453,6 @@ function updateBoard(context) {
                             catch {
                             }
                             stopBossStage()
-
                         }
                     }
                 }
@@ -552,13 +464,13 @@ function updateBoard(context) {
 
             if ((state.snake.snakeLength - 1) > state.game.maxScore) {
                 state.game.maxScore = state.snake.snakeLength - 1
-                maxScoreElem.innerText = `Max score: ${state.game.maxScore}`
+                C.elems.maxScoreElem.innerText = `Max score: ${state.game.maxScore}`
                 localStorage.setItem("max_score", state.game.maxScore)
             }
 
             if (state.achievements.hungerCounter >= C.HUNGER_AMOUNT) {
                 state.achievements.hunger = true
-                completeAchievement(hungerElem)
+                completeAchievement(C.elems.hungerElem)
                 try {
                     const achRaw = localStorage.getItem("achievements")
                     const ach = achRaw ? JSON.parse(achRaw) : {}
@@ -571,7 +483,7 @@ function updateBoard(context) {
 
             if ((state.snake.snakeBody.length - 1) >= C.PACIFIST_AMOUNT && !state.achievements.pacifistFailed && !state.achievements.pacifist) {
                 state.achievements.pacifist = true
-                completeAchievement(pacifistElem)
+                completeAchievement(C.elems.pacifistElem)
                 try {
                     const achRaw = localStorage.getItem("achievements")
                     const ach = achRaw ? JSON.parse(achRaw) : {}
@@ -586,7 +498,6 @@ function updateBoard(context) {
             drawSnake(context)
             state.cakes.forEach(cake => drawCake(context, cake))
         }
-
     }
 }
 
@@ -620,9 +531,9 @@ function handlePressedKey(e) {
 }
 
 function updateSliderColor(value) {
-    volumeSlider.style.pointerEvents = C.bgMusic.muted ? "none" : "auto"
-    volumeSlider.style.opacity = C.bgMusic.muted ? "0.4" : "1"
-    volumeSlider.style.setProperty("--fill", `${value * 100}%`)
+    C.elems.volumeSliderElem.style.pointerEvents = C.bgMusic.muted ? "none" : "auto"
+    C.elems.volumeSliderElem.style.opacity = C.bgMusic.muted ? "0.4" : "1"
+    C.elems.volumeSliderElem.style.setProperty("--fill", `${value * 100}%`)
 }
 
 
@@ -648,17 +559,20 @@ window.onload = function () {
         },
         { passive: false }
     )
+
     const boardElem = document.getElementById("board")
     boardElem.width = C.CELLSIZE * C.COLS
     boardElem.height = C.CELLSIZE * C.ROWS
     const context = boardElem.getContext("2d")
-    scoreElem = document.getElementById("scoreText")
-    maxScoreElem = document.getElementById("maxScoreText")
 
     const lastMaxScore = Number(localStorage.getItem("max_score"))
     state.game.maxScore = Number.isFinite(lastMaxScore) ? lastMaxScore : 0
-    maxScoreElem.innerText = `Max score: ${state.game.maxScore}`
+    C.elems.maxScoreElem.innerText = `Max score: ${state.game.maxScore}`
 
+    C.elems.restartBtnElem.addEventListener("click", () => {
+        setNewGame()
+        startGame()
+    })
 
     try {
         const achievements = localStorage.getItem("achievements")
@@ -675,32 +589,22 @@ window.onload = function () {
         state.achievements.ghostHunter = false
     }
 
-
-
-
-    achievementList = document.getElementById("achievementList")
-    catchYourTailElem = document.getElementById("catchYourTail")
-    hungerElem = document.getElementById("hunger")
-    pacifistElem = document.getElementById("pacifist")
-
-
-
     if (state.achievements.catchYourTail) {
-        catchYourTailElem.classList.add("achDone")
-        achievementList.append(catchYourTailElem)
+        C.elems.catchYourTailElem.classList.add("achDone")
+        C.elems.achievementListElem.append(C.elems.catchYourTailElem)
     }
     if (state.achievements.pacifist) {
-        pacifistElem.classList.add("achDone")
-        achievementList.append(pacifistElem)
+        C.elems.pacifistElem.classList.add("achDone")
+        C.elems.achievementListElem.append(C.elems.pacifistElem)
     }
     if (state.achievements.hunger) {
-        hungerElem.classList.add("achDone")
-        achievementList.append(hungerElem)
+        C.elems.hungerElem.classList.add("achDone")
+        C.elems.achievementListElem.append(C.elems.hungerElem)
     }
     if (state.achievements.ghostHunter) {
-        ghostHunterElem = document.createElement("div")
-        ghostHunterElem.className = "boss"
-        ghostHunterElem.id = "ghostHunter"
+        C.elems.ghostHunterElem = document.createElement("div")
+        C.elems.ghostHunterElem.className = "boss"
+        C.elems.ghostHunterElem.id = "ghostHunter"
 
         const h2 = document.createElement("h2")
         h2.textContent = "Ghostbuster"
@@ -708,15 +612,13 @@ window.onload = function () {
         const p = document.createElement("p")
         p.textContent = "Eat them all."
 
-        ghostHunterElem.append(h2, p)
+        C.elems.ghostHunterElem.append(h2, p)
 
-        ghostHunterElem.classList.add("achDone")
-        achievementList.append(ghostHunterElem)
+        C.elems.ghostHunterElem.classList.add("achDone")
+        C.elems.achievementListElem.append(C.elems.ghostHunterElem)
     }
 
-
     document.addEventListener("keyup", handlePressedKey)
-
 
     const soundBtn = document.getElementById("soundBtn")
     document.addEventListener("keydown", () => {
@@ -725,18 +627,18 @@ window.onload = function () {
             state.music.musicStarted = true
         }
     })
-    const savedVolume = Number(localStorage.getItem("game_volume"))
-    state.music.lastVolume = Number.isFinite(savedVolume) ? savedVolume : 0.4
+
+    const savedVolume = localStorage.getItem("game_volume")
+    state.music.lastVolume = savedVolume !== null ? Number(savedVolume) : 0.4
     C.bgMusic.muted = localStorage.getItem("game_muted") === "true"
     if (C.bgMusic.muted) {
         soundBtn.classList.toggle("muted", C.bgMusic.muted)
         soundBtn.innerText = C.bgMusic.muted ? "Unmute" : "Mute"
-
     }
-    volumeSlider = document.getElementById("volumeSlider")
-    volumeSlider.value = state.music.lastVolume
-    C.bgMusic.volume = volumeSlider.value
-    updateSliderColor(volumeSlider.value)
+
+    C.elems.volumeSliderElem.value = state.music.lastVolume
+    C.bgMusic.volume = C.elems.volumeSliderElem.value
+    updateSliderColor(C.elems.volumeSliderElem.value)
 
     soundBtn.addEventListener("click", () => {
         if (!C.bgMusic.muted) {
@@ -745,10 +647,10 @@ window.onload = function () {
         } else {
             C.bgMusic.muted = false
             C.bgMusic.volume = state.music.lastVolume ?? localStorage.getItem("game_volume") ?? 1
-            volumeSlider.value = C.bgMusic.volume
+            C.elems.volumeSliderElem.value = C.bgMusic.volume
         }
 
-        updateSliderColor(volumeSlider.value)
+        updateSliderColor(C.elems.volumeSliderElem.value)
 
         soundBtn.classList.toggle("muted", C.bgMusic.muted)
         soundBtn.innerText = C.bgMusic.muted ? "Unmute" : "Mute"
@@ -756,13 +658,11 @@ window.onload = function () {
         localStorage.setItem("game_muted", String(C.bgMusic.muted))
     });
 
-
-
-    volumeSlider.addEventListener("input", () => {
-        C.bgMusic.volume = volumeSlider.value
+    C.elems.volumeSliderElem.addEventListener("input", () => {
+        C.bgMusic.volume = C.elems.volumeSliderElem.value
         state.music.lastVolume = C.bgMusic.volume
 
-        updateSliderColor(volumeSlider.value)
+        updateSliderColor(C.elems.volumeSliderElem.value)
 
         localStorage.setItem("game_volume", String(state.music.lastVolume))
     })

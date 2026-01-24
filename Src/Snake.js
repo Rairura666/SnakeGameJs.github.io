@@ -5,7 +5,7 @@ export function cutTail() {
     if (state.snake.snakeBody.length >= 1) {
         state.snake.snakeBody.splice(0, 1)
         state.snake.snakeLength = state.snake.snakeBody.length
-        scoreElem.innerText = state.snake.snakeLength >= 1 ? `Score: ${state.snake.snakeLength - 1}` : "Score: 0"
+        C.elems.scoreElem.innerText = state.snake.snakeLength >= 1 ? `Score: ${state.snake.snakeLength - 1}` : "Score: 0"
     }
 }
 
