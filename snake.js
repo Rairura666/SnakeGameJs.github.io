@@ -3,7 +3,8 @@ import { state } from "./Src/State.js"
 import { ghostMovement, ghostActions, drawGhost } from "./Src/Ghost.js"
 import { drawFoodBox, newFoodPos } from "./Src/Food.js"
 import { randomizeCell } from "./Src/Utils.js"
-import { drawCake, tryCakeAppear, spawnCake } from "./Src/Cake.js";
+import { drawCake, tryCakeAppear } from "./Src/Cake.js"
+import {completeAchievement, failAchievement} from "./Src/Achievement.js"
 
 let scoreElem
 let maxScoreElem
@@ -855,25 +856,25 @@ function updateSliderColor(value) {
     volumeSlider.style.setProperty("--fill", `${value * 100}%`)
 }
 
-function completeAchievement(elem) {
-    if (!elem || !achievementList) return
-    if (elem.classList.contains("achDone")) return
+// function completeAchievement(elem) {
+//     if (!elem || !achievementList) return
+//     if (elem.classList.contains("achDone")) return
 
-    elem.classList.add("achFlash")
+//     elem.classList.add("achFlash")
 
-    setTimeout(() => {
-        elem.classList.remove("achFlash")
-        elem.classList.add("achDone")
-        achievementList.append(elem)
-    }, 1000)
-}
+//     setTimeout(() => {
+//         elem.classList.remove("achFlash")
+//         elem.classList.add("achDone")
+//         achievementList.append(elem)
+//     }, 1000)
+// }
 
-function failAchievement(elem) {
-    if (!elem || !achievementList) return
-    if (elem.classList.contains("achDone")) return
+// function failAchievement(elem) {
+//     if (!elem || !achievementList) return
+//     if (elem.classList.contains("achDone")) return
 
-    elem.classList.add("failed")
-}
+//     elem.classList.add("failed")
+// }
 
 window.onload = function () {
     window.addEventListener(
