@@ -2,7 +2,8 @@ import * as C from "./Src/Constants.js";
 import { state } from "./Src/State.js"
 import { ghostMovement, ghostActions, drawGhost } from "./Src/Ghost.js"
 import { drawFoodBox, newFoodPos } from "./Src/Food.js"
-import { randomizeCell } from "./Src/Utils.js";
+import { randomizeCell } from "./Src/Utils.js"
+import { drawCake, tryCakeAppear, spawnCake } from "./Src/Cake.js";
 
 let scoreElem
 let maxScoreElem
@@ -71,24 +72,6 @@ function startGame() {
     state.ghosts.forEach(gh => ghostMovement.giveGhostSpeed(gh))
 }
 
-function spawnCake() {
-    let x, y
-
-    do {
-        const pos = randomizeCell()
-        x = pos.x
-        y = pos.y
-    } while (
-        (state.food.foodX != null && state.food.foodY != null && x === state.food.foodX && y === state.food.foodY) ||
-        state.cakes.some(cake => cake.x === x && cake.y === y) ||
-        state.snake.snakeBody.some(seg => seg[0] === x && seg[1] === y)
-    )
-
-    state.cakes.push({
-        id: crypto.randomUUID(),
-        x, y
-    })
-}
 
 function spawnGhost({ x, y }) {
     const directions = ["Right", "Left", "Up", "Down"]
@@ -112,47 +95,6 @@ function spawnGhost({ x, y }) {
 }
 
 
-// function drawFoodBox(context) {
-//     if (state.food.foodX != null && state.food.foodY != null) {
-//         context.drawImage(
-//             C.foodImg,
-//             state.food.foodX * C.CELLSIZE, state.food.foodY * C.CELLSIZE, C.CELLSIZE, C.CELLSIZE,
-//         )
-//     }
-//     else return
-
-// }
-
-// function newFoodPos() {
-//     if (!state.game.foodSpawnProhibited) {
-//         let x, y
-//         do {
-//             const pos = randomizeCell()
-//             x = pos.x
-//             y = pos.y
-//         } while ((x == 0 && y == 0) ||
-//         (x == (C.COLS - 1) && y == 0) ||
-//         (x == 0 && y == (C.ROWS - 1)) ||
-//         (x == (C.COLS - 1) && y == (C.ROWS - 1)) || state.cakes.some(cake => cake.x == x && cake.y == y))
-//         state.food.foodX = x
-//         state.food.foodY = y
-//     } else {
-//         state.food.foodX = null
-//         state.food.foodY = null
-//     }
-
-// }
-
-
-function drawCake(context, cake) {
-    context.drawImage(
-        C.cakeImg,
-        cake.x * C.CELLSIZE,
-        cake.y * C.CELLSIZE,
-        C.CELLSIZE,
-        C.CELLSIZE
-    )
-}
 
 function drawRotatedSegment(context, image, x, y, cellsize, angle, frame) {
     context.save();
@@ -862,12 +804,6 @@ function updateBoard(context) {
 }
 
 
-function tryCakeAppear() {
-    if (!state.game.cakeSpawnProhibited && Math.random() < state.chances.cakeChance) {
-        spawnCake()
-    }
-}
-
 function tryGhostAppear() {
     if (!state.game.ghostSpawnProhibited && Math.random() < state.chances.ghostChance) {
         const gh = spawnGhost(randomizeCell())
@@ -875,12 +811,6 @@ function tryGhostAppear() {
     }
 }
 
-// function randomizeCell() {
-//     const x = Math.floor(Math.random() * (C.ROWS - 1)) + 1
-//     const y = Math.floor(Math.random() * (C.COLS - 1)) + 1
-
-//     return { x, y }
-// }
 
 function isOpposite(a, b) {
     return (
