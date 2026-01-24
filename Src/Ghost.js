@@ -1,0 +1,149 @@
+import { state } from "./State.js"
+import * as C from "./Constants.js"
+
+
+export function drawGhost(context, ghost) {
+    if (state.game.pauseBeforeBoss) {
+        if (state.tickers.pauseBeforeBossTick % 2 == 0) {
+            context.drawImage(
+                C.ghostImg,
+                ghost.x * C.CELLSIZE, ghost.y * C.CELLSIZE, C.CELLSIZE, C.CELLSIZE,
+            )
+        }
+        else {
+            context.drawImage(
+                C.ghostRedImg,
+                ghost.x * C.CELLSIZE, ghost.y * C.CELLSIZE, C.CELLSIZE, C.CELLSIZE,
+            )
+        }
+    } else {
+        context.drawImage(
+            C.ghostImg,
+            ghost.x * C.CELLSIZE, ghost.y * C.CELLSIZE, C.CELLSIZE, C.CELLSIZE,
+        )
+    }
+}
+
+function giveGhostSpeed(ghost) {
+
+
+    if (ghost.curDir === "Up") {
+        ghost.ghostSpeedY = -1
+        ghost.ghostSpeedX = 0
+    }
+    if (ghost.curDir === "Down") {
+        ghost.ghostSpeedY = 1
+        ghost.ghostSpeedX = 0
+    }
+    if (ghost.curDir === "Left") {
+        ghost.ghostSpeedX = -1
+        ghost.ghostSpeedY = 0
+    }
+    if (ghost.curDir === "Right") {
+        ghost.ghostSpeedX = 1
+        ghost.ghostSpeedY = 0
+    }
+}
+
+function giveGhostNewDir(ghost, newDir) {
+    ghost.curDir = newDir
+    if (newDir === "Up") {
+        ghost.ghostSpeedY = -1
+        ghost.ghostSpeedX = 0
+    }
+    if (newDir === "Down") {
+        ghost.ghostSpeedY = 1
+        ghost.ghostSpeedX = 0
+    }
+    if (newDir === "Left") {
+        ghost.ghostSpeedX = -1
+        ghost.ghostSpeedY = 0
+    }
+    if (newDir === "Right") {
+        ghost.ghostSpeedX = 1
+        ghost.ghostSpeedY = 0
+    }
+    ghost.changeTick = 0
+    ghost.changeDelay = Math.floor(Math.random() * (C.ghostMaxChangeDirDelay - C.ghostMinChangeDirDelay + 1)) + C.ghostMinChangeDirDelay
+    ghost.availableDirs = getAvailableDirs(ghost)
+}
+
+function checkIfTheFoodCloseToTheGhost(ghost) {
+    if (state.food.foodX != null && state.food.foodY != null) {
+        if ((Math.abs(ghost.x - state.food.foodX) <= 3) && (Math.abs(ghost.y - state.food.foodY) <= 3)) return true
+    }
+    return false
+}
+
+function changeGhostDirection(ghost) {
+
+    if (checkIfTheFoodCloseToTheGhost(ghost)) {
+        if (state.food.foodX != null && state.food.foodY != null) {
+            if (ghost.x > state.food.foodX) giveGhostNewDir(ghost, "Left")
+            else if (ghost.x < state.food.foodX) giveGhostNewDir(ghost, "Right")
+            else if (ghost.y > state.food.foodY) giveGhostNewDir(ghost, "Up")
+            else if (ghost.y < state.food.foodY) giveGhostNewDir(ghost, "Down")
+        }
+    }
+    else {
+        const directions = ghost.availableDirs
+        giveGhostNewDir(ghost, directions[Math.floor(Math.random() * directions.length)])
+    }
+}
+
+function ghostGonnaEatACake(ghost, cake) {
+    if (ghost.x > cake.x) giveGhostNewDir(ghost, "Left")
+    else if (ghost.x < cake.x) giveGhostNewDir(ghost, "Right")
+    else if (ghost.y > cake.y) giveGhostNewDir(ghost, "Up")
+    else if (ghost.y < cake.y) giveGhostNewDir(ghost, "Down")
+}
+
+function getAvailableDirs(ghost) {
+    const dirs = []
+
+    if (ghost.x > 0) dirs.push("Left")
+    if (ghost.x < C.COLS - 1) dirs.push("Right")
+    if (ghost.y > 0) dirs.push("Up")
+    if (ghost.y < C.ROWS - 1) dirs.push("Down")
+
+    return dirs
+}
+
+function getNearestCake(ghost) {
+    if (state.cakes.length === 0) return null
+
+    let nearest = null
+    let minDist = Infinity
+
+    for (const cake of state.cakes) {
+        const dist =
+            Math.abs(cake.x - ghost.x) +
+            Math.abs(cake.y - ghost.y)
+
+        if (dist <= 2 && dist < minDist) {
+            minDist = dist
+            nearest = cake
+        }
+    }
+
+    return nearest
+}
+
+function ghostEatsCake(ghost, cake) {
+    state.cakes = state.cakes.filter(c => c.id !== cake.id)
+    state.ghosts = state.ghosts.filter(g => g.id !== ghost.id)
+}
+
+export const ghostMovement = {
+    getAvailableDirs,
+    changeGhostDirection,
+    giveGhostNewDir,
+    giveGhostSpeed
+}
+
+export const ghostActions = {
+    ghostEatsCake,
+    getNearestCake,
+    ghostGonnaEatACake,
+    checkIfTheFoodCloseToTheGhost,
+}
