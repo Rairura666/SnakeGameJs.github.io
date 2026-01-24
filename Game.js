@@ -1,11 +1,11 @@
 import * as C from "./Src/Constants.js";
 import { state } from "./Src/State.js"
-import { ghostMovement, ghostActions, drawGhost, spawnGhost, tryGhostAppear } from "./Src/Ghost.js"
+import { ghostMovement, ghostActions, drawGhost, spawnGhost, tryGhostAppear, ifGhostIsOnTheFoodCellItEatsFood, handleBeingCloseToACake } from "./Src/Ghost.js"
 import { drawFoodBox, newFoodPos } from "./Src/Food.js"
 import { randomizeCell, isOpposite, putBossRules, putNormalRules, updateSliderColor, giveSnakeNewDirByKey, tryIncreaseMaxScore, tryCompleteHunger, tryCompletePacifist, tryCompleteCatchYourTail, countPacmanFrame, countGameOverScreenFrame, countBossFrame, countPauseBeforeBossFrame } from "./Src/Utils.js"
 import { drawCake, tryCakeAppear } from "./Src/Cake.js"
 import { completeAchievement, failAchievement } from "./Src/Achievement.js"
-import { drawSnake, cutTail, giveSnakeSpeedByDirection, tpSnake, ifSnakeIsOnTheFoodCellItEatsFood,ifSnakeIsOnTheCakeCellItEatsCake, handlePoisonedStateIfNeeded } from "./Src/Snake.js"
+import { drawSnake, cutTail, giveSnakeSpeedByDirection, tpSnake, ifSnakeIsOnTheFoodCellItEatsFood, ifSnakeIsOnTheCakeCellItEatsCake, handlePoisonedStateIfNeeded } from "./Src/Snake.js"
 
 
 function setNewGame() {
@@ -264,45 +264,8 @@ function updateBoard(context) {
                     ghostMovement.giveGhostNewDir(ghost, ghost.availableDirs[Math.floor(Math.random() * ghost.availableDirs.length)])
                 }
                 else {
-
-                    if (ghostActions.checkIfTheFoodCloseToTheGhost(ghost)) {
-                        ghostMovement.changeGhostDirection(ghost)
-                    }
-
-                    const nearestCake = ghostActions.getNearestCake(ghost)
-                    let ghostTargetsCake = false
-                    if (nearestCake != null) {
-                        if (state.ghosts.length == 1) {
-                            if ((state.ghosts[0].curDir == "Up" && state.ghosts[0].y == nearestCake.y + 2) ||
-                                (state.ghosts[0].curDir == "Down" && state.ghosts[0].y == nearestCake.y - 2) ||
-                                (state.ghosts[0].curDir == "Right" && state.ghosts[0].x == nearestCake.x - 2) ||
-                                (state.ghosts[0].curDir == "Left" && state.ghosts[0].x == nearestCake.x + 2)
-                            )
-                                ghostMovement.changeGhostDirection(ghost)
-                        } else if (nearestCake && (Math.random() <= state.chances.ghostChanceToEatCake)) {
-                            ghostActions.ghostGonnaEatACake(ghost, nearestCake)
-                            ghostTargetsCake = true
-
-                        }
-
-                        if (ghostTargetsCake && ghost.x === nearestCake.x && ghost.y === nearestCake.y) {
-                            if (state.ghosts.length > 1) {
-                                ghostActions.ghostEatsCake(ghost, nearestCake)
-                            }
-                        }
-                    }
-
-                    if (state.food.foodX != null && state.food.foodY != null && ghost.x == state.food.foodX && ghost.y == state.food.foodY) {
-                        newFoodPos()
-                        if (Math.random() <= state.chances.ghostChance) {
-                            const gh = spawnGhost({ x: ghost.x, y: ghost.y })
-                            ghostMovement.giveGhostSpeed(gh)
-                            if (state.ghosts.length >= C.GHOSTS_BOSS_AMOUNT) {
-                                state.game.pauseBeforeBoss = true
-                            }
-                            state.chances.ghostChance /= 2
-                        }
-                    }
+                    handleBeingCloseToACake(ghost)
+                    ifGhostIsOnTheFoodCellItEatsFood(ghost)
                 }
 
                 if (ghost.changeTick >= ghost.changeDelay) {

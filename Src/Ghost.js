@@ -1,7 +1,7 @@
 import { state } from "./State.js"
 import * as C from "./Constants.js"
 import { randomizeCell } from "./Utils.js"
-
+import { newFoodPos } from "./Food.js"
 
 export function drawGhost(context, ghost) {
     if (state.game.pauseBeforeBoss) {
@@ -25,6 +25,47 @@ export function drawGhost(context, ghost) {
     }
 }
 
+export function handleBeingCloseToACake(ghost) {
+    if (ghostActions.checkIfTheFoodCloseToTheGhost(ghost)) {
+        ghostMovement.changeGhostDirection(ghost)
+    }
+
+    const nearestCake = ghostActions.getNearestCake(ghost)
+    let ghostTargetsCake = false
+    if (nearestCake != null) {
+        if (state.ghosts.length == 1) {
+            if ((state.ghosts[0].curDir == "Up" && state.ghosts[0].y == nearestCake.y + 2) ||
+                (state.ghosts[0].curDir == "Down" && state.ghosts[0].y == nearestCake.y - 2) ||
+                (state.ghosts[0].curDir == "Right" && state.ghosts[0].x == nearestCake.x - 2) ||
+                (state.ghosts[0].curDir == "Left" && state.ghosts[0].x == nearestCake.x + 2)
+            )
+                ghostMovement.changeGhostDirection(ghost)
+        } else if (nearestCake && (Math.random() <= state.chances.ghostChanceToEatCake)) {
+            ghostActions.ghostGonnaEatACake(ghost, nearestCake)
+            ghostTargetsCake = true
+        }
+
+        if (ghostTargetsCake && ghost.x === nearestCake.x && ghost.y === nearestCake.y) {
+            if (state.ghosts.length > 1) {
+                ghostActions.ghostEatsCake(ghost, nearestCake)
+            }
+        }
+    }
+}
+
+export function ifGhostIsOnTheFoodCellItEatsFood(ghost) {
+    if (state.food.foodX != null && state.food.foodY != null && ghost.x == state.food.foodX && ghost.y == state.food.foodY) {
+        newFoodPos()
+        if (Math.random() <= state.chances.ghostChance) {
+            const gh = spawnGhost({ x: ghost.x, y: ghost.y })
+            ghostMovement.giveGhostSpeed(gh)
+            if (state.ghosts.length >= C.GHOSTS_BOSS_AMOUNT) {
+                state.game.pauseBeforeBoss = true
+            }
+            state.chances.ghostChance /= 2
+        }
+    }
+}
 
 export function tryGhostAppear() {
     if (!state.game.ghostSpawnProhibited && Math.random() < state.chances.ghostChance) {
