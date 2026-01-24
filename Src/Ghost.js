@@ -1,5 +1,6 @@
 import { state } from "./State.js"
 import * as C from "./Constants.js"
+import { randomizeCell } from "./Utils.js"
 
 
 export function drawGhost(context, ghost) {
@@ -24,8 +25,38 @@ export function drawGhost(context, ghost) {
     }
 }
 
-function giveGhostSpeed(ghost) {
 
+export function tryGhostAppear() {
+    if (!state.game.ghostSpawnProhibited && Math.random() < state.chances.ghostChance) {
+        const gh = spawnGhost(randomizeCell())
+        ghostMovement.giveGhostSpeed(gh)
+    }
+}
+
+
+export function spawnGhost({ x, y }) {
+    const directions = ["Right", "Left", "Up", "Down"]
+    const curDir = directions[Math.floor(Math.random() * directions.length)]
+
+    const newGhost = {
+        id: crypto.randomUUID(),
+        age: 0,
+        x, y,
+        curDir,
+        ghostSpeedX: 0, ghostSpeedY: 0,
+        changeTick: 0,
+        changeDelay: Math.floor(Math.random() * (C.ghostMaxChangeDirDelay - C.ghostMinChangeDirDelay + 1)) + C.ghostMinChangeDirDelay,
+
+    }
+
+    newGhost.availableDirs = ghostMovement.getAvailableDirs(newGhost)
+    state.ghosts.push(newGhost)
+
+    return newGhost
+}
+
+
+function giveGhostSpeed(ghost) {
 
     if (ghost.curDir === "Up") {
         ghost.ghostSpeedY = -1
