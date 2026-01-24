@@ -1,5 +1,6 @@
 import { state } from "./State.js"
 import * as C from "./Constants.js"
+import { completeAchievement } from "./Achievement.js"
 
 export function randomizeCell() {
     const x = Math.floor(Math.random() * (C.ROWS - 1)) + 1
@@ -93,3 +94,102 @@ export function updateSliderColor(value) {
     C.elems.volumeSliderElem.style.opacity = C.bgMusic.muted ? "0.4" : "1"
     C.elems.volumeSliderElem.style.setProperty("--fill", `${value * 100}%`)
 }
+
+export function giveSnakeNewDirByKey(e) {
+    let newDir = null
+
+    if (e.code === "ArrowUp" || e.code === "KeyW") newDir = "Up"
+    if (e.code === "ArrowDown" || e.code === "KeyS") newDir = "Down"
+    if (e.code === "ArrowLeft" || e.code === "KeyA") newDir = "Left"
+    if (e.code === "ArrowRight" || e.code === "KeyD") newDir = "Right"
+
+    return newDir
+}
+
+
+export function tryIncreaseMaxScore() {
+    if ((state.snake.snakeLength - 1) > state.game.maxScore) {
+        state.game.maxScore = state.snake.snakeLength - 1
+        C.elems.maxScoreElem.innerText = `Max score: ${state.game.maxScore}`
+        localStorage.setItem("max_score", state.game.maxScore)
+    }
+}
+
+export function tryCompleteHunger() {
+    if (state.achievements.hungerCounter >= C.HUNGER_AMOUNT) {
+        state.achievements.hunger = true
+        completeAchievement(C.elems.hungerElem)
+        try {
+            const achRaw = localStorage.getItem("achievements")
+            const ach = achRaw ? JSON.parse(achRaw) : {}
+            ach.hunger = true
+            localStorage.setItem("achievements", JSON.stringify(ach))
+        }
+        catch {
+        }
+    }
+}
+
+export function tryCompletePacifist() {
+    if ((state.snake.snakeBody.length - 1) >= C.PACIFIST_AMOUNT && !state.achievements.pacifistFailed && !state.achievements.pacifist) {
+        state.achievements.pacifist = true
+        completeAchievement(C.elems.pacifistElem)
+        try {
+            const achRaw = localStorage.getItem("achievements")
+            const ach = achRaw ? JSON.parse(achRaw) : {}
+            ach.pacifist = true
+            localStorage.setItem("achievements", JSON.stringify(ach))
+        }
+        catch {
+        }
+    }
+}
+
+export function tryCompleteCatchYourTail() {
+    if (state.achievements.catchYourTail === false && state.snake.snakeBody.length > 1 && state.snake.snakeX === state.snake.previousTailX && state.snake.snakeY === state.snake.previousTailY) {
+        state.achievements.catchYourTail = true
+        completeAchievement(C.elems.catchYourTailElem)
+        try {
+            const achRaw = localStorage.getItem("achievements")
+            const ach = achRaw ? JSON.parse(achRaw) : {}
+            ach.catchYourTail = true
+            localStorage.setItem("achievements", JSON.stringify(ach))
+        }
+        catch {
+        }
+    }
+}
+
+
+export function countPacmanFrame() {
+    state.tickers.pacmanFrameTick++
+    if (state.tickers.pacmanFrameTick >= C.PACMAN_DELAY) {
+        state.frames.pacmanFrame = (state.frames.pacmanFrame + 1) % C.PACMAN_FRAMES
+        state.tickers.pacmanFrameTick = 0
+    }
+}
+
+export function countGameOverScreenFrame() {
+    state.tickers.gameoverFrameTick++
+    if (state.tickers.gameoverFrameTick >= C.GAMEOVER_DELAY) {
+        state.frames.gameoverFrame = (state.frames.gameoverFrame + 1) % C.GAMEOVER_FRAMES
+        state.tickers.gameoverFrameTick = 0
+    }
+}
+
+export function countBossFrame() {
+    state.tickers.bossFrameTick++
+    if (state.tickers.bossFrameTick >= C.BOSS_DELAY) {
+        state.frames.bossFrame = (state.frames.bossFrame + 1) % C.BOSS_FRAMES
+        state.tickers.bossFrameTick = 0
+    }
+}
+
+export function countPauseBeforeBossFrame() {
+    state.tickers.pauseBossFrameTick++
+    if (state.tickers.pauseBossFrameTick >= C.PAUSE_BOSS_DELAY) {
+        state.frames.pauseBossFrame = (state.frames.pauseBossFrame + 1) % C.PAUSE_BOSS_FRAMES
+        state.tickers.pauseBossFrameTick = 0
+    }
+}
+

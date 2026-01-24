@@ -1,11 +1,92 @@
 import { state } from "./State.js"
 import * as C from "./Constants.js"
+import { tryCakeAppear } from "./Cake.js"
+import { newFoodPos } from "./Food.js"
 
 export function cutTail() {
     if (state.snake.snakeBody.length >= 1) {
         state.snake.snakeBody.splice(0, 1)
         state.snake.snakeLength = state.snake.snakeBody.length
         C.elems.scoreElem.innerText = state.snake.snakeLength >= 1 ? `Score: ${state.snake.snakeLength - 1}` : "Score: 0"
+    }
+}
+
+export function handlePoisonedStateIfNeeded(poisonCount) {
+    if (state.snake.poisoned) {
+        state.tickers.poisonedTick++
+
+        if (state.tickers.poisonedTick >= C.POISONED_TICKS) {
+            state.snake.poisoned = false
+            state.tickers.poisonedTick = 0
+
+            state.snake.snakeBody.splice(0, poisonCount)
+            state.snake.snakeLength = state.snake.snakeBody.length
+        }
+    }
+}
+
+export function ifSnakeIsOnTheFoodCellItEatsFood(poisonCount) {
+    if (state.food.foodX != null && state.food.foodY != null && state.snake.snakeX == state.food.foodX && state.snake.snakeY == state.food.foodY) {
+        tryCakeAppear()
+        newFoodPos()
+        state.snake.snakeLength += 1
+        state.snake.isPacmanStrong = true
+        state.achievements.hungerCounter += 1
+        state.tickers.strongTick = C.STRONG_TICKS
+        if (state.snake.poisoned)
+            C.elems.scoreElem.innerText = `Score: ${state.snake.snakeLength - poisonCount - 1}`
+        else
+            C.elems.scoreElem.innerText = `Score: ${state.snake.snakeLength - 1}`
+    }
+}
+
+export function ifSnakeIsOnTheCakeCellItEatsCake(poisonCount) {
+    
+    const eatenCakeIndex = state.cakes.findIndex(
+        cake => cake.x === state.snake.snakeX && cake.y === state.snake.snakeY
+    )
+
+    if (eatenCakeIndex !== -1) {
+        state.snake.poisoned = true
+        state.tickers.poisonedTick = 0
+        C.elems.scoreElem.innerText = `Score: ${state.snake.snakeLength - poisonCount - 1}`
+        state.cakes.splice(eatenCakeIndex, 1)
+    }
+}
+
+
+
+export function tpSnake() {
+    if (state.snake.snakeX < 0) {
+        state.snake.snakeX = C.COLS - 1
+    }
+    if (state.snake.snakeX > (C.COLS - 1)) {
+        state.snake.snakeX = 0
+    }
+    if (state.snake.snakeY < 0) {
+        state.snake.snakeY = C.ROWS - 1
+    }
+    if (state.snake.snakeY > (C.ROWS - 1)) {
+        state.snake.snakeY = 0
+    }
+}
+
+export function giveSnakeSpeedByDirection() {
+    if (state.snake.curDirection === "Up") {
+        state.snake.speedX = 0
+        state.snake.speedY = -1
+    }
+    if (state.snake.curDirection === "Down") {
+        state.snake.speedX = 0
+        state.snake.speedY = 1
+    }
+    if (state.snake.curDirection === "Left") {
+        state.snake.speedX = -1
+        state.snake.speedY = 0
+    }
+    if (state.snake.curDirection === "Right") {
+        state.snake.speedX = 1
+        state.snake.speedY = 0
     }
 }
 

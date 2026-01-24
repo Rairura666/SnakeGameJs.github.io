@@ -40,7 +40,6 @@ export function spawnGhost({ x, y }) {
 
     const newGhost = {
         id: crypto.randomUUID(),
-        age: 0,
         x, y,
         curDir,
         ghostSpeedX: 0, ghostSpeedY: 0,
