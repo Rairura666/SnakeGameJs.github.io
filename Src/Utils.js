@@ -87,3 +87,9 @@ export function putBossRules() {
         }
     })
 }
+
+export function updateSliderColor(value) {
+    C.elems.volumeSliderElem.style.pointerEvents = C.bgMusic.muted ? "none" : "auto"
+    C.elems.volumeSliderElem.style.opacity = C.bgMusic.muted ? "0.4" : "1"
+    C.elems.volumeSliderElem.style.setProperty("--fill", `${value * 100}%`)
+}

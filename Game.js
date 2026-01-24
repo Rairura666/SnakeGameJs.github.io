@@ -2,7 +2,7 @@ import * as C from "./Src/Constants.js";
 import { state } from "./Src/State.js"
 import { ghostMovement, ghostActions, drawGhost, spawnGhost, tryGhostAppear } from "./Src/Ghost.js"
 import { drawFoodBox, newFoodPos } from "./Src/Food.js"
-import { randomizeCell, isOpposite, putBossRules, putNormalRules } from "./Src/Utils.js"
+import { randomizeCell, isOpposite, putBossRules, putNormalRules, updateSliderColor} from "./Src/Utils.js"
 import { drawCake, tryCakeAppear } from "./Src/Cake.js"
 import { completeAchievement, failAchievement } from "./Src/Achievement.js"
 import { drawSnake, cutTail } from "./Src/Snake.js"
@@ -75,7 +75,6 @@ function startBossStage() {
     putNormalRules()
 }
 
-
 function stopBossStage() {
     state.game.isBossStage = false
     state.game.foodSpawnProhibited = false
@@ -94,7 +93,6 @@ function stopBossStage() {
         C.elems.ghostHunterElem.remove()
     }
 }
-
 
 function updateBoard(context) {
     context.fillStyle = "black"
@@ -501,7 +499,6 @@ function updateBoard(context) {
     }
 }
 
-
 function handlePressedKey(e) {
     if (!state.game.gameStarted) startGame()
     if (state.game.gameOver) {
@@ -529,13 +526,6 @@ function handlePressedKey(e) {
     state.snake.nextDirection = newDir
     state.snake.directionLocked = true
 }
-
-function updateSliderColor(value) {
-    C.elems.volumeSliderElem.style.pointerEvents = C.bgMusic.muted ? "none" : "auto"
-    C.elems.volumeSliderElem.style.opacity = C.bgMusic.muted ? "0.4" : "1"
-    C.elems.volumeSliderElem.style.setProperty("--fill", `${value * 100}%`)
-}
-
 
 window.onload = function () {
     window.addEventListener(
