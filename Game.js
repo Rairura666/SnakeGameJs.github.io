@@ -367,6 +367,9 @@ function handlePressedKey(e) {
 }
 
 window.onload = function () {
+
+    C.initElems()
+
     window.addEventListener(
         "keydown",
         (e) => {
@@ -404,8 +407,11 @@ window.onload = function () {
     })
 
     try {
-        const achievements = localStorage.getItem("achievements")
-        achObj = JSON.parse(achievements) ?? {}
+
+        const raw = localStorage.getItem("achievements")
+
+        const achObj = raw ? JSON.parse(raw) : {}
+        console.log("achObj")
         state.achievements.catchYourTail = achObj?.catchYourTail ?? false
         state.achievements.pacifist = achObj?.pacifist ?? false
         state.achievements.hunger = achObj?.hunger ?? false
@@ -419,6 +425,7 @@ window.onload = function () {
     }
 
     if (state.achievements.catchYourTail) {
+
         C.elems.catchYourTailElem.classList.add("achDone")
         C.elems.achievementListElem.append(C.elems.catchYourTailElem)
     }

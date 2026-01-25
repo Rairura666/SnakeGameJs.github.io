@@ -68,24 +68,18 @@ ghostImg.src = "Src/Assets/ghost.png"
 export const ghostRedImg = new Image()
 ghostRedImg.src = "Src/Assets/ghostRed.png"
 
-let scoreElem = document.getElementById("scoreText")
-let maxScoreElem = document.getElementById("maxScoreText")
-let catchYourTailElem = document.getElementById("catchYourTail")
-let hungerElem = document.getElementById("hunger")
-let pacifistElem = document.getElementById("pacifist")
-let ghostHunterElem
-let achievementListElem = document.getElementById("achievementList")
-let volumeSliderElem = document.getElementById("volumeSlider")
-let restartBtnElem = document.getElementById("restartBtn")
+export let elems = {}
 
-export const elems = {
- scoreElem,
- maxScoreElem,
- catchYourTailElem,
- hungerElem,
- pacifistElem,
- ghostHunterElem,
- achievementListElem,
- volumeSliderElem,
- restartBtnElem,
+export function initElems() {
+  elems = {
+    scoreElem: document.getElementById("scoreText"),
+    maxScoreElem: document.getElementById("maxScoreText"),
+    catchYourTailElem: document.getElementById("catchYourTail"),
+    hungerElem: document.getElementById("hunger"),
+    pacifistElem: document.getElementById("pacifist"),
+    ghostHunterElem: null,
+    achievementListElem: document.getElementById("achievementList"),
+    volumeSliderElem: document.getElementById("volumeSlider"),
+    restartBtnElem: document.getElementById("restartBtn"),
+  }
 }
