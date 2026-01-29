@@ -3,8 +3,8 @@ import * as C from "./Constants.js"
 import { completeAchievement } from "./Achievement.js"
 
 export function randomizeCell() {
-    const x = Math.floor(Math.random() * (C.ROWS - 1)) + 1
-    const y = Math.floor(Math.random() * (C.COLS - 1)) + 1
+    const x = Math.floor(Math.random() * (C.ROWS))
+    const y = Math.floor(Math.random() * (C.COLS))
 
     return { x, y }
 }
